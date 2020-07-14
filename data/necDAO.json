@@ -19,7 +19,16 @@
     }
   ],
   "StandAloneContracts": [],
-  "CustomSchemes": [],
+  "CustomSchemes": [
+    {
+      "name": "UniswapScheme",
+      "alias": "UniswapScheme",
+      "isUniversal": false,
+      "params": ["GenesisProtocolAddress", { "voteParams": 0 }],
+      "permissions": "0x00000001",
+      "fromArc": false
+    }
+  ],
   "VotingMachinesParams": [
     {
       "activationTime": 0,

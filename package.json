@@ -9,14 +9,19 @@
     "url": "git+https://github.com/Curve-Labs/necDAO-uniswap.git"
   },
   "scripts": {
+    "compile": "npx truffle compile",
     "ganache:start": "bash scripts/ganache.sh",
     "ganache:stop": "bash scripts/ganache.sh stop",
-    "migrate": "node scripts/migrate.js"
+    "abi:copy": "cp build/contracts/UniswapScheme.json node_modules/@daostack/migration/custom-abis/UniswapScheme.json",
+    "migrate": "npm run abi:copy && node scripts/migrate.js"
   },
   "dependencies": {},
   "devDependencies": {
+    "@daostack/arc": "0.0.1-rc.41",
+    "@daostack/infra": "0.0.1-rc.17",
     "@daostack/migration": "0.0.1-rc.41-v7",
     "dotenv": "^8.2.0",
-    "ganache-cli": "^6.9.1"
+    "ganache-cli": "^6.9.1",
+    "truffle": "^5.1.34"
   }
 }

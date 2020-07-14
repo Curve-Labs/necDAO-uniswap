@@ -26,7 +26,7 @@ stop_ganache() {
 }
 
 start_ganache() {
-  node_modules/.bin/ganache-cli --gasLimit 99900000  --port "$ganache_port" -m "fetch local valve black attend double eye excite planet primary install allow" > /dev/null &
+  node_modules/.bin/ganache-cli --gasLimit 99900000  --port "$ganache_port" -m "myth like bonus scare over problem client lizard pioneer submit female collect" > /dev/null &
 
   ganache_pid=$!
 

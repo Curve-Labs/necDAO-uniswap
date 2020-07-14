@@ -432,22 +432,22 @@
         "Redeemer": "0x29341E0Fea3d1fdD3FD25a929B8e9A2085CD4E7D"
       },
       "0.0.1-rc.41": {
-        "GEN": "0xAee0a72b255cEc4b5C4Fc1F1938a71E8C52547d8",
-        "DAORegistry": "0xB63D0F03c64e0af72058d5FecC8aCFa8CD8D90cE",
-        "DAOTracker": "0xB2568C64C744fb70Cf817f1208c4f56705beDeD7",
-        "ControllerCreator": "0xa8EFda643990D400cbeB2F2dCD79C5a88Db89940",
-        "DaoCreator": "0xb8C0dde66599Adee309183De16fE5f0ecf659F87",
-        "GenesisProtocol": "0x6A154a4bed1BCa098CBa615e48c11b08ce449aA3",
-        "SchemeRegistrar": "0xE4f84364bba51a0031B16321B11994987b689056",
-        "UpgradeScheme": "0x0749bcD7D09d54E36cbb6Fc34B3b9F8b21d5d50e",
-        "GlobalConstraintRegistrar": "0xf27b449C36a2D0D8D9c9891029D9d44753b37B14",
-        "ContributionReward": "0x762308BD453397DF4683306E1f15904F6825eAB3",
-        "AbsoluteVote": "0x8B1ABCf12109EC2c764FD3771ea9E2C13Db5150F",
-        "QuorumVote": "0x7f7D7f448A69bD47be36184492Ce572ebb1FEDef",
-        "TokenCapGC": "0x4942210a664C71d4807B8c7cE578022d1A7790A8",
-        "VoteInOrganizationScheme": "0x8cf9926CEF7F8f2cBa7d511380EA093da9a95071",
-        "OrganizationRegister": "0x056882f6120Ea10Bb1C0A62f10bE50D8d7514994",
-        "Redeemer": "0x927490F3455927eb705c8Fc2Bf57567a9e5c84a7"
+        "GEN": "0xe78A0F7E598Cc8b0Bb87894B0F60dD2a88d6a8Ab",
+        "DAORegistry": "0xdC78afe9cFDe0576Ff236667DC8c380615c24Ca9",
+        "DAOTracker": "0xB349FB172D6D5f693b0aA1C6eEc4c61cFd6846f4",
+        "ControllerCreator": "0xd45A464a2412A2f83498d13635698a041b9dBe9b",
+        "DaoCreator": "0x83EE15DFDDD8b8AD56A73001Ca7A1627c7fe6716",
+        "GenesisProtocol": "0x6793E8E0E8ac22d71c65c2bf82e9B142dEf9eCDb",
+        "SchemeRegistrar": "0x68b86Cd90A44C805b1cCF4808b29C9c7cf73FDFF",
+        "UpgradeScheme": "0x0d3C71782055bD88A71b611972152d6e984EDF79",
+        "GlobalConstraintRegistrar": "0xe93e3B649d4E01e47dd2170CAFEf0651477649Da",
+        "ContributionReward": "0xEd447aCB0CEb49d77f317dD6D37CB64da7a7E7F8",
+        "AbsoluteVote": "0x3F4E941ef5071a1D09C2eB4a24DA1Fc43F76fcfF",
+        "QuorumVote": "0xE8e43b5D61C43375aB7b651F1419F2a81C5E6615",
+        "TokenCapGC": "0xC3Ef4965B788cc4b905084d01F2eb7D4b6E93ABF",
+        "VoteInOrganizationScheme": "0x04CbD650c829299FDedCE903eada37FbDbA3b50f",
+        "OrganizationRegister": "0xb111Ded3F2e4012C0B85D930Fda298693D0DA0B2",
+        "Redeemer": "0xDd37b2eB92F97dd09cEd1f1d20A73aA340b2311A"
       }
     },
     "dao": {
@@ -1307,42 +1307,13 @@
         "arcVersion": "0.0.1-rc.40"
       },
       "0.0.1-rc.41": {
-        "name": "Inveterate Apples",
-        "Avatar": "0x1EaddB8b4095320cf44cEE3448ac73eeCD9A2D6D",
-        "DAOToken": "0x375f4ecc738EE3175FA00F5bC13a47DC15AbeBd7",
-        "Reputation": "0xcBDFAB17efb4F1b5cd3B05615D7e32415fa80d10",
-        "Controller": "0x923F16917b0929CC08F5Fa35113F3e207aEE4fB3",
-        "Schemes": [
-          {
-            "name": "GenericScheme",
-            "alias": "GenericSchemeAlias",
-            "address": "0x158CBa029dE5D141f0e6e264de7b4F22C1c6A700",
-            "arcVersion": "0.0.1-rc.41"
-          },
-          {
-            "name": "ContributionRewardExt",
-            "alias": "ContributionRewardExt",
-            "address": "0x3f63362ef1a187dcec09C5C951DB47be3FddBF11",
-            "arcVersion": "0.0.1-rc.41"
-          }
-        ],
-        "StandAloneContracts": [
-          {
-            "name": "Wallet",
-            "address": "0x12eb8682598481A2AEb01F86B3d9DBF00291Ef7D",
-            "arcVersion": "0.0.1-rc.41"
-          },
-          {
-            "name": "ContributionRewardExt",
-            "address": "0x3f63362ef1a187dcec09C5C951DB47be3FddBF11",
-            "arcVersion": "0.0.1-rc.41"
-          },
-          {
-            "name": "Competition",
-            "address": "0xd5484bb1F891023ABC512902d6F5949E3AC063e4",
-            "arcVersion": "0.0.1-rc.41"
-          }
-        ],
+        "name": "blablablabla",
+        "Avatar": "0xf7eE2d0b0fb9fcb1b9b62322c54876799f9FA26d",
+        "DAOToken": "0xb47575eA1302a2c1a09d1CC6f3ed0FCF9D1678d4",
+        "Reputation": "0x57b4Ed61B461de0d18CA885035D28584dD9677db",
+        "Controller": "0xa91a3Be505946964D5F9d448bF54dDeEB9b2385E",
+        "Schemes": [],
+        "StandAloneContracts": [],
         "arcVersion": "0.0.1-rc.41"
       }
     },

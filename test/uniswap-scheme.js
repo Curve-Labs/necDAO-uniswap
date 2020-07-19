@@ -23,7 +23,7 @@ const deploy = async (accounts) => {
   setup.votingMachine = await helpers.setupAbsoluteVote(helpers.NULL_ADDRESS, 50, setup.uniswap.address);
   await setup.uniswap.initialize(setup.org.avatar.address, setup.votingMachine.absoluteVote.address, setup.votingMachine.params);
   // register uniswap scheme
-  const permissions = '0x00000000';
+  const permissions = '0x0000001f';
   await setup.daoCreator.setSchemes(setup.org.avatar.address, [setup.uniswap.address], [helpers.NULL_HASH], [permissions], 'metaData');
   // deploy test target contract
   setup.target = await TestTarget.new();
@@ -48,8 +48,13 @@ contract('UniswapScheme', (accounts) => {
       const proposalId = await helpers.getValueFromLogs(tx, 'proposalId', 0);
 
       const tx2 = await setup.votingMachine.absoluteVote.vote(proposalId, 1, 0, helpers.NULL_ADDRESS, { from: accounts[0] });
-
+      const tx3 = await setup.uniswap.execute(proposalId);
+      console.log('TX2');
       console.log(tx2.logs);
+      console.log('TX3');
+      console.log(tx3.receipt.rawLogs);
+
+      console.log(await setup.target.value());
     });
   });
 });

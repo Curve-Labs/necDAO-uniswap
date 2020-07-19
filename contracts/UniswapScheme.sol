@@ -42,10 +42,16 @@ contract UniswapScheme is VotingMachineCallbacks, ProposalExecuteInterface {
     returns (bytes32 proposalId) {
       proposalId = votingMachine.propose(2, voteParams, msg.sender, address(avatar));
       proposals[proposalId] = Proposal({test: _test, description: _description });
+
+      proposalsInfo[address(votingMachine)][proposalId] = ProposalInfo({
+        blockNumber:block.number,
+        avatar:avatar
+      });
+
       emit SwapETHForTokenProposal(proposalId);
     }
 
-    function executeProposal(bytes32 _proposalId, int _decision) external returns(bool) {
+    function executeProposal(bytes32 _proposalId, int _decision) external onlyVotingMachine(_proposalId) returns(bool) {
       emit Decision(_proposalId, _decision);
       return true;
     }

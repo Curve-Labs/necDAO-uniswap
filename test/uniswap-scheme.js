@@ -19,9 +19,9 @@ const deploy = async (accounts) => {
   setup.org = await helpers.setupOrganizationWithArrays(setup.daoCreator, [accounts[0], accounts[1], accounts[2]], [1000, 0, 0], setup.reputations);
   // deploy uniswap scheme
   setup.uniswap = await UniswapScheme.new();
-  setup.uniswap.votingMachine = await helpers.setupAbsoluteVote(helpers.NULL_ADDRESS, 50, setup.uniswap.address);
-  setup.voting = setup.uniswap.votingMachine;
-  await setup.uniswap.initialize(setup.org.avatar.address, setup.uniswap.votingMachine.absoluteVote.address, setup.uniswap.votingMachine.params);
+  // initialize uniswap scheme
+  setup.votingMachine = await helpers.setupAbsoluteVote(helpers.NULL_ADDRESS, 50, setup.uniswap.address);
+  await setup.uniswap.initialize(setup.org.avatar.address, setup.votingMachine.absoluteVote.address, setup.votingMachine.params);
   // register uniswap scheme
   const permissions = '0x00000000';
   await setup.daoCreator.setSchemes(setup.org.avatar.address, [setup.uniswap.address], [helpers.NULL_HASH], [permissions], 'metaData');
@@ -36,12 +36,20 @@ contract('UniswapScheme', (accounts) => {
     setup = await deploy(accounts);
   });
 
-  context('# test', () => {
+  context('# initialize', () => {
+    it('it initializes scheme', async () => {
+      assert.equal(await setup.uniswap.avatar(), setup.org.avatar.address);
+      assert.equal(await setup.uniswap.votingMachine(), setup.votingMachine.absoluteVote.address);
+      assert.equal(await setup.uniswap.voteParams(), setup.votingMachine.params);
+    });
+
     it('it accepts proposal', async () => {
       const tx = await setup.uniswap.swapETHForToken(setup.target.address, 'YOLO');
       const proposalId = await helpers.getValueFromLogs(tx, 'proposalId', 0);
 
-      const tx2 = await setup.voting.absoluteVote.vote(proposalId, 1, 0, helpers.NULL_ADDRESS, { from: root });
+      const tx2 = await setup.votingMachine.absoluteVote.vote(proposalId, 1, 0, helpers.NULL_ADDRESS, { from: accounts[0] });
+
+      console.log(tx2.logs);
     });
   });
 });

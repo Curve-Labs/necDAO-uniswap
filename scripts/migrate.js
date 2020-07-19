@@ -7,7 +7,7 @@ async function migrate() {
 
   const options = {
     //   provider: process.env.PROVIDER,
-    gasPrice: DEFAULT_GAS,
+    gasPrice: 3.5,
     gasLimit: 9990000,
     quiet: false,
     force: true,
@@ -16,6 +16,7 @@ async function migrate() {
     mnemonic: process.env.MNEMONIC,
     //   customAbisLocation: process.env.CUSTOM_ABI_LOCATION,
     params: {
+      // migrationSpec,
       private: migrationSpec,
       rinkeby: migrationSpec,
     },

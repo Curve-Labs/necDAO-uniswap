@@ -9,19 +9,28 @@
     "url": "git+https://github.com/Curve-Labs/necDAO-uniswap.git"
   },
   "scripts": {
-    "compile": "npx truffle compile",
+    "compile": "npx truffle compile && npm run abi:copy",
     "ganache:start": "bash scripts/ganache.sh",
     "ganache:stop": "bash scripts/ganache.sh stop",
-    "abi:copy": "cp build/contracts/UniswapScheme.json node_modules/@daostack/migration/custom-abis/UniswapScheme.json",
-    "migrate": "npm run abi:copy && node scripts/migrate.js"
+    "test": "bash scripts/ganache.sh test",
+    "abi:copy": "mkdir -p node_modules/@daostack/migration/custom-abis && cp build/contracts/UniswapScheme.json node_modules/@daostack/migration/custom-abis/UniswapScheme.json",
+    "migrate": "node scripts/migrate.js"
   },
   "dependencies": {},
   "devDependencies": {
     "@daostack/arc": "0.0.1-rc.41",
     "@daostack/infra": "0.0.1-rc.17",
     "@daostack/migration": "0.0.1-rc.41-v7",
+    "@openzeppelin/test-helpers": "^0.5.6",
+    "babel-polyfill": "^6.26.0",
+    "babel-preset-es2015": "^6.24.1",
+    "babel-preset-stage-2": "^6.24.1",
+    "babel-preset-stage-3": "^6.24.1",
+    "babel-register": "^6.26.0",
+    "chai": "^4.2.0",
     "dotenv": "^8.2.0",
-    "ganache-cli": "^6.9.1",
+    "ganache-cli": "6.10.0-beta.2",
+    "openzeppelin-solidity": "2.4.0",
     "truffle": "^5.1.34"
   }
 }

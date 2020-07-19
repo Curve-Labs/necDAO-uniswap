@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # exit script as soon as a command fails
-set -o errexit
+# set -o errexit
 
 # execute cleanup function at script exit
 # trap cleanup EXIT
@@ -25,6 +25,8 @@ stop_ganache() {
   kill -9 $ganache_pid
 }
 
+# --fork https://mainnet.infura.io/v3/3fcbe43325d14fc6b31c35ef977c6dea 
+
 start_ganache() {
   node_modules/.bin/ganache-cli --gasLimit 99900000  --port "$ganache_port" -m "myth like bonus scare over problem client lizard pioneer submit female collect" > /dev/null &
 
@@ -39,7 +41,11 @@ start_ganache() {
   printf "\b\b\b \e[32mOK\e[0m\n"
 }
 
-if [ "$1" == "stop" ]; then
+if [ "$1" == "test" ]; then
+  start_ganache
+  node_modules/.bin/truffle test
+  # stop_ganache
+elif [ "$1" == "stop" ]; then
   echo -n "[+] killing running ganache instances..."
   if ganache_running; then
     stop_ganache

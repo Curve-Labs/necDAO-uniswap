@@ -1,3 +1,6 @@
+require('babel-register');
+require('babel-polyfill');
+
 const gasReporter = {
   reporter: 'eth-gas-reporter',
   reporterOptions: {

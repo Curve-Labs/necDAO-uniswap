@@ -3,32 +3,20 @@ lerna-debug.log
 
 # dependencies
 node_modules
-**/*/node_modules
 
 # lock
-yarn.lock
 package-lock.json
-**/**/yarn.lock
-**/**/package-lock.json
 
 # truffle
 abi
 build
 
-# openzeppelin
-*/**/.openzeppelin/dev-*.json
-*/**/.openzeppelin/.session
-
-# graph
-*/**/abis
-*/**/generated
-
 # coverage
-*/**/coverage
-*/**/coverageEnv
-*/**/coverage.json
-*/**/allFiredEvents
-*/**/scTopics
+coverage
+coverageEnv
+coverage.json
+allFiredEvents
+scTopics
 
 # macOS shit
-*/**/.DS_Store
+.DS_Store

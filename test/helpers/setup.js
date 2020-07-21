@@ -76,7 +76,6 @@ export const scheme = async (setup) => {
   const scheme = await UniswapScheme.new();
   // deploy scheme voting machine
   scheme.voting = await helpers.setupAbsoluteVote(helpers.NULL_ADDRESS, 50, scheme.address);
-  console.log(scheme.voting);
   // initialize scheme
   await scheme.initialize(setup.organization.avatar.address, scheme.voting.absoluteVote.address, scheme.voting.params, setup.uniswap.factory.address);
   // register scheme

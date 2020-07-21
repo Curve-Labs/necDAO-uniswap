@@ -15,6 +15,8 @@ export const SOME_HASH = '0x1000000000000000000000000000000000000000000000000000
 export const NULL_ADDRESS = '0x0000000000000000000000000000000000000000';
 export const SOME_ADDRESS = '0x1000000000000000000000000000000000000000';
 
+import * as setup from './setup';
+export { setup };
 export class TestSetup {
   constructor() {}
 }

@@ -4,7 +4,6 @@ import "@daostack/arc/contracts/universalSchemes/DaoCreator.sol";
 import "@daostack/infra/contracts/votingMachines/AbsoluteVote.sol";
 
 contract Import  {
-
   constructor () public {
     // nothing here
   }

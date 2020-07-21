@@ -16,7 +16,10 @@
     "abi:copy": "mkdir -p node_modules/@daostack/migration/custom-abis && cp build/contracts/UniswapScheme.json node_modules/@daostack/migration/custom-abis/UniswapScheme.json",
     "migrate": "node scripts/migrate.js"
   },
-  "dependencies": {},
+  "dependencies": {
+    "@uniswap/v2-core": "^1.0.1",
+    "@uniswap/v2-periphery": "^1.1.0-beta.0"
+  },
   "devDependencies": {
     "@daostack/arc": "0.0.1-rc.41",
     "@daostack/infra": "0.0.1-rc.17",

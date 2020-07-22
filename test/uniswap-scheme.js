@@ -1,56 +1,8 @@
 const TestTarget = artifacts.require('TestTarget');
-const DaoCreator = artifacts.require('./DaoCreator.sol');
-const ControllerCreator = artifacts.require('./ControllerCreator.sol');
-const DAOTracker = artifacts.require('./DAOTracker.sol');
-const Avatar = artifacts.require('./Avatar.sol');
-const constants = require('./helpers/constants');
-const UniswapV2Factory = artifacts.require('UniswapV2Factory');
-const ERC20 = artifacts.require('ERC20Mock');
-const WETH = artifacts.require('WETH9');
-const UniswapV2Router = artifacts.require('UniswapV2Router02');
-
 import * as helpers from './helpers';
+import { assert } from 'chai';
 
-// const deploy = async (accounts) => {
-//   // initialize test setup
-//   const setup = new helpers.TestSetup();
-//   setup.root = accounts[0];
-//   setup.reputations = [1000];
-//   // deploy WETH and ERC20s
-//   setup.tokens = await helpers.setup.tokens(accounts[0]);
-//   // deploy uniswap infrastructure
-//   setup.uniswap = await helpers.setup.uniswap(setup);
-//   // deploy DAOStack meta-contracts
-//   setup.daostack = await helpers.setup.DAOStack();
-//   // deploy organization
-//   // setup.org = await helpers.setupOrganizationWithArrays(setup.daoCreator, [accounts[0], accounts[1], accounts[2]], [1000, 0, 0], setup.reputations);
-//   setup.organization = await helpers.setup.organization(setup);
-//   // deploy ERC20s
-//   setup.tokens = [await ERC20.new(accounts[0], 20000000000), await ERC20.new(accounts[0], 20000000000)];
-//   // create uniswap pair
-//   const tx = await setup.factory.createPair(setup.tokens[0].address, setup.tokens[1].address);
-//   setup.pair = await helpers.getValueFromLogs(tx, 'pair', 0);
-//   // deploy uniswap scheme
-//   setup.uniswap = await UniswapScheme.new();
-//   // initialize uniswap scheme
-//   setup.votingMachine = await helpers.setupAbsoluteVote(helpers.NULL_ADDRESS, 50, setup.uniswap.address);
-//   await setup.uniswap.initialize(setup.org.avatar.address, setup.votingMachine.absoluteVote.address, setup.votingMachine.params, setup.factory.address);
-//   // register uniswap scheme
-//   const permissions = '0x0000001f';
-//   await setup.daoCreator.setSchemes(setup.org.avatar.address, [setup.uniswap.address], [helpers.NULL_HASH], [permissions], 'metaData');
-//   // seed liquidity to the uniswap pair
-//   const AMOUNT = 10000000000;
-//   await setup.tokens[0].approve(setup.router.address, AMOUNT);
-//   const tx2 = await setup.tokens[1].approve(setup.router.address, AMOUNT);
-//   const timestamp = (await web3.eth.getBlock(tx2.receipt.blockNumber)).timestamp;
-//   await setup.router.addLiquidity(setup.tokens[0].address, setup.tokens[1].address, AMOUNT, AMOUNT, AMOUNT, AMOUNT, accounts[0], timestamp + 10000000);
-//   // transfer the remaining of the tokens to the avatar
-//   await setup.tokens[0].transfer(setup.org.avatar.address, AMOUNT);
-//   await setup.tokens[1].transfer(setup.org.avatar.address, AMOUNT);
-//   // deploy test target contract
-//   setup.target = await TestTarget.new();
-//   return setup;
-// };
+const ProposalKind = { Swap: 0, Seed: 1 };
 
 const deploy = async (accounts) => {
   // initialize test setup
@@ -72,35 +24,110 @@ const deploy = async (accounts) => {
 
 contract('UniswapScheme', (accounts) => {
   let setup;
-  before('!! deploy DAO', async () => {
+  before('!! deploy setup', async () => {
     setup = await deploy(accounts);
-
-    console.log('Pair: ' + setup.pair);
   });
 
   context('# initialize', () => {
-    it('it computes pair', async () => {
-      const tx = await setup.scheme.test(setup.tokens.erc20s[0].address, setup.tokens.erc20s[1].address);
-
-      console.log(await helpers.getValueFromLogs(tx, 'pair', 0));
-    });
-
     it('it initializes scheme', async () => {
       assert.equal(await setup.scheme.avatar(), setup.organization.avatar.address);
       assert.equal(await setup.scheme.votingMachine(), setup.scheme.voting.absoluteVote.address);
       assert.equal(await setup.scheme.voteParams(), setup.scheme.voting.params);
+      assert.equal(await setup.scheme.router(), setup.uniswap.router.address);
     });
 
-    it('it accepts proposal', async () => {
-      // const tx = await setup.uniswap.swapETHForToken(setup.target.address, 'YOLO');
-      // const proposalId = await helpers.getValueFromLogs(tx, 'proposalId', 0);
-      // const tx2 = await setup.votingMachine.absoluteVote.vote(proposalId, 1, 0, helpers.NULL_ADDRESS, { from: accounts[0] });
-      // const tx3 = await setup.uniswap.execute(proposalId);
-      // console.log('TX2');
-      // console.log(tx2.logs);
-      // console.log('TX3');
-      // console.log(tx3.receipt.rawLogs);
-      // console.log(await setup.target.value());
+    it('it reverts on re-initialization', async () => {
+      // await scheme.initialize(setup.organization.avatar.address, scheme.voting.absoluteVote.address, scheme.voting.params, setup.uniswap.router.address);
+    });
+  });
+
+  context('# swap', () => {
+    it('it emits a NewProposal event', async () => {
+      const tx = await setup.scheme.swap(setup.tokens.erc20s[0].address, setup.tokens.erc20s[1].address, '1000', '500');
+
+      helpers.assertEvent(tx, 'NewProposal');
+      assert.equal(await helpers.getValueFromLogs(tx, 'kind', 'NewProposal'), ProposalKind.Swap);
+    });
+
+    it('it emits a NewSwapProposal event', async () => {
+      const tx = await setup.scheme.swap(setup.tokens.erc20s[0].address, setup.tokens.erc20s[1].address, '1000', '500');
+
+      helpers.assertEvent(tx, 'NewSwapProposal');
+      assert.equal(await helpers.getValueFromLogs(tx, 'from', 'NewSwapProposal'), setup.tokens.erc20s[0].address);
+      assert.equal(await helpers.getValueFromLogs(tx, 'to', 'NewSwapProposal'), setup.tokens.erc20s[1].address);
+      assert.equal(await helpers.getValueFromLogs(tx, 'amount', 'NewSwapProposal'), 1000);
+      assert.equal(await helpers.getValueFromLogs(tx, 'expected', 'NewSwapProposal'), 500);
+    });
+
+    it('it registers Proposal', async () => {
+      const tx = await setup.scheme.swap(setup.tokens.erc20s[0].address, setup.tokens.erc20s[1].address, '1000', '500');
+      const proposalId = helpers.getNewProposalId(tx);
+      const proposal = await setup.scheme.proposals(proposalId);
+
+      assert.equal(proposal.exists, true);
+      assert.equal(proposal.passed, false);
+      assert.equal(proposal.kind, ProposalKind.Swap);
+    });
+
+    it('it registers SwapProposal', async () => {
+      const tx = await setup.scheme.swap(setup.tokens.erc20s[0].address, setup.tokens.erc20s[1].address, '1000', '500');
+      const proposalId = helpers.getNewProposalId(tx);
+      const proposal = await setup.scheme.swapProposals(proposalId);
+
+      assert.equal(proposal.from, setup.tokens.erc20s[0].address);
+      assert.equal(proposal.to, setup.tokens.erc20s[1].address);
+      assert.equal(proposal.amount, 1000);
+      assert.equal(proposal.expected, 500);
+    });
+
+    context('>> executeProposal', () => {});
+
+    context('>> execute', () => {
+      context(' >> ERC20 to ERC20', () => {
+        let proposalId, tx;
+        before('!! execute swap', async () => {
+          const _tx = await setup.scheme.swap(setup.tokens.erc20s[0].address, setup.tokens.erc20s[1].address, '1000', '500');
+          proposalId = helpers.getNewProposalId(_tx);
+          await setup.scheme.voting.absoluteVote.vote(proposalId, 1, 0, helpers.NULL_ADDRESS, { from: accounts[0] });
+          tx = await setup.scheme.execute(proposalId);
+        });
+
+        it('it executes swap', async () => {
+          console.log((await setup.tokens.erc20s[0].balanceOf(setup.organization.avatar.address)).toString());
+          console.log((await setup.tokens.erc20s[1].balanceOf(setup.organization.avatar.address)).toString());
+
+          const tx = await setup.scheme.swap(setup.tokens.erc20s[0].address, setup.tokens.erc20s[1].address, '1000', '500');
+          const proposalId = helpers.getNewProposalId(tx);
+          const tx2 = await setup.scheme.voting.absoluteVote.vote(proposalId, 1, 0, helpers.NULL_ADDRESS, { from: accounts[0] });
+          const tx3 = await setup.scheme.execute(proposalId);
+
+          helpers.assertEvent(tx3, 'ProposalExecuted');
+          helpers.assertEvent(tx3, 'ProposalDeleted');
+          helpers.assertEvent(tx3, 'SwapProposalExecuted');
+          console.log((await helpers.getValueFromLogs(tx3, 'returned', 'SwapProposalExecuted')).toString());
+
+          // helpers.assertExternalEvent(tx3, 'Approval(address,address,uint256)');
+
+          console.log((await setup.tokens.erc20s[0].balanceOf(setup.organization.avatar.address)).toString());
+          console.log((await setup.tokens.erc20s[1].balanceOf(setup.organization.avatar.address)).toString());
+        });
+
+        it('it emits a ProposalExecuted event', async () => {});
+
+        it('it deletes the Proposal', async () => {
+          const proposal = await setup.scheme.proposals(proposalId);
+          const swapProposal = await setup.scheme.swapProposals(proposalId);
+
+          helpers.assertEvent(tx, 'ProposalDeleted');
+          assert.equal(proposal.exists, false);
+          assert.equal(proposal.exists, false);
+          assert.equal(proposal.kind, 0);
+          assert.equal(swapProposal.from, 0);
+          assert.equal(swapProposal.to, 0);
+          assert.equal(swapProposal.amount, 0);
+          assert.equal(swapProposal.expected, 0);
+        });
+      });
     });
   });
 });

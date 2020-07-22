@@ -77,7 +77,7 @@ export const scheme = async (setup) => {
   // deploy scheme voting machine
   scheme.voting = await helpers.setupAbsoluteVote(helpers.NULL_ADDRESS, 50, scheme.address);
   // initialize scheme
-  await scheme.initialize(setup.organization.avatar.address, scheme.voting.absoluteVote.address, scheme.voting.params, setup.uniswap.factory.address);
+  await scheme.initialize(setup.organization.avatar.address, scheme.voting.absoluteVote.address, scheme.voting.params, setup.uniswap.router.address);
   // register scheme
   const permissions = '0x0000001f';
   await setup.DAOStack.daoCreator.setSchemes(setup.organization.avatar.address, [scheme.address], [helpers.NULL_HASH], [permissions], 'metaData');

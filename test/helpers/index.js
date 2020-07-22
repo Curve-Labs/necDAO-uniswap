@@ -8,6 +8,7 @@ const Reputation = artifacts.require('./Reputation.sol');
 const AbsoluteVote = artifacts.require('./AbsoluteVote.sol');
 const constants = require('./constants');
 const GenesisProtocol = artifacts.require('./GenesisProtocol.sol');
+const sha3 = require('js-sha3').keccak_256;
 
 export const MAX_UINT_256 = '0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff';
 export const NULL_HASH = '0x0000000000000000000000000000000000000000000000000000000000000000';
@@ -29,12 +30,24 @@ export class Organization {
   constructor() {}
 }
 
+export function getNewProposalId(tx) {
+  return getValueFromLogs(tx, 'proposalId', 'NewProposal');
+}
+
 export function getProposalAddress(tx) {
   // helper function that returns a proposal object from the ProposalCreated event
   // in the logs of tx
   assert.equal(tx.logs[0].event, 'ProposalCreated');
   const proposalAddress = tx.logs[0].args.proposaladdress;
   return proposalAddress;
+}
+
+export function assertExternalEvent(tx, eventName, instances = 1) {
+  const events = tx.receipt.rawLogs.filter((l) => {
+    return l.topics[0] === '0x' + sha3(eventName);
+  });
+  assert.equal(events.length, instances, `'${eventName}' event should have been fired ${instances} times`);
+  return events;
 }
 
 export function getValueFromLogs(tx, arg, eventName, index = 0) {
@@ -92,6 +105,20 @@ export async function etherForEveryone(accounts) {
 }
 
 export const outOfGasMessage = 'VM Exception while processing transaction: out of gas';
+
+export function assertEvent(tx, event) {
+  if (!tx.logs || !tx.logs.length) {
+    throw new Error('assertEvents: Transaction has no logs');
+  }
+
+  for (let i = 0; i < tx.logs.length; i++) {
+    if (tx.logs[i].event === event) {
+      return true;
+    }
+  }
+
+  throw new Error(`assertEvents: Transaction has no ${event} event`);
+}
 
 export function assertJumpOrOutOfGas(error) {
   let condition = error.message === outOfGasMessage || error.message.search('invalid JUMP') > -1;

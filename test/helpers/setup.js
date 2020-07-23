@@ -10,7 +10,7 @@ import * as helpers from './index';
 const constants = require('./constants');
 
 const INITIAL_CASH_SUPPLY = '2000000000000000000000';
-const INITIAL_CASH_BALANCE = '1000000000000000000000';
+const INITIAL_CASH_BALANCE = '100000000000000';
 const DAO_TOKENS = '100';
 const REPUTATION = '1000';
 
@@ -24,6 +24,7 @@ export const initialize = async (root) => {
 export const tokens = async (setup) => {
   const weth = await WETH.new();
   const erc20s = [await ERC20.new(setup.root, INITIAL_CASH_SUPPLY), await ERC20.new(setup.root, INITIAL_CASH_SUPPLY)];
+  await weth.deposit({ value: INITIAL_CASH_BALANCE });
 
   return { weth, erc20s };
 };
@@ -34,14 +35,26 @@ export const uniswap = async (setup) => {
   const router = await UniswapV2Router.new(factory.address, setup.tokens.weth.address);
   // create uniswap pairs
   await factory.createPair(setup.tokens.erc20s[0].address, setup.tokens.erc20s[1].address);
-  // const pair = await helpers.getValueFromLogs(tx, 'pair', 0);
+  await factory.createPair(setup.tokens.weth.address, setup.tokens.erc20s[0].address);
   // seed liquidity
-  const tx1 = await setup.tokens.erc20s[0].approve(router.address, INITIAL_CASH_BALANCE);
+  await setup.tokens.erc20s[0].approve(router.address, INITIAL_CASH_BALANCE);
   const tx2 = await setup.tokens.erc20s[1].approve(router.address, INITIAL_CASH_BALANCE);
   const timestamp = (await web3.eth.getBlock(tx2.receipt.blockNumber)).timestamp;
   await router.addLiquidity(
     setup.tokens.erc20s[0].address,
     setup.tokens.erc20s[1].address,
+    INITIAL_CASH_BALANCE,
+    INITIAL_CASH_BALANCE,
+    INITIAL_CASH_BALANCE,
+    INITIAL_CASH_BALANCE,
+    setup.root,
+    timestamp + 10000000
+  );
+  await setup.tokens.weth.approve(router.address, INITIAL_CASH_BALANCE);
+  await setup.tokens.erc20s[0].approve(router.address, INITIAL_CASH_BALANCE);
+  await router.addLiquidity(
+    setup.tokens.weth.address,
+    setup.tokens.erc20s[0].address,
     INITIAL_CASH_BALANCE,
     INITIAL_CASH_BALANCE,
     INITIAL_CASH_BALANCE,
@@ -67,6 +80,7 @@ export const organization = async (setup) => {
   // transfer remaining of roots' balances to the organization avatar
   await setup.tokens.erc20s[0].transfer(organization.avatar.address, INITIAL_CASH_BALANCE);
   await setup.tokens.erc20s[1].transfer(organization.avatar.address, INITIAL_CASH_BALANCE);
+  await web3.eth.sendTransaction({ from: setup.root, to: organization.avatar.address, value: INITIAL_CASH_BALANCE });
 
   return organization;
 };

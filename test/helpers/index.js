@@ -15,7 +15,7 @@ export const NULL_HASH = '0x0000000000000000000000000000000000000000000000000000
 export const SOME_HASH = '0x1000000000000000000000000000000000000000000000000000000000000000';
 export const NULL_ADDRESS = '0x0000000000000000000000000000000000000000';
 export const SOME_ADDRESS = '0x1000000000000000000000000000000000000000';
-
+const THROW_ERROR_PREFIX = 'Returned error: VM Exception while processing transaction: revert';
 import * as setup from './setup';
 export { setup };
 export class TestSetup {
@@ -32,6 +32,37 @@ export class Organization {
 
 export function getNewProposalId(tx) {
   return getValueFromLogs(tx, 'proposalId', 'NewProposal');
+}
+
+export async function assertThrows(blockOrPromise, expectedErrorCode, expectedReason, ctx) {
+  try {
+    typeof blockOrPromise === 'function' ? await blockOrPromise() : await blockOrPromise;
+  } catch (error) {
+    const errorMatchesExpected = error.message.search(expectedErrorCode) > -1;
+    assert(errorMatchesExpected, `Expected error code "${expectedErrorCode}" but failed with "${error}" instead.`);
+    return error;
+  }
+  // assert.fail() for some reason does not have its error string printed 🤷
+  assert(false, `Expected "${expectedErrorCode}"${expectedReason ? ` (with reason: "${expectedReason}")` : ''} but it did not fail`);
+}
+
+export async function assertRevert(blockOrPromise, expectedReason, ctx) {
+  const error = await assertThrows(blockOrPromise, 'revert', expectedReason, ctx);
+
+  if (!expectedReason) {
+    return;
+  }
+
+  // Truffle v5 provides `error.reason`, but v4 does not.
+  if (!error.reason && error.message.includes(THROW_ERROR_PREFIX)) {
+    error.reason = error.message.replace(THROW_ERROR_PREFIX, '').trim();
+  }
+  // Truffle 5 sometimes adds an extra ' -- Reason given: reason.' to the error message 🤷
+  error.reason = error.reason.replace(` -- Reason given: ${expectedReason}.`, '').trim();
+
+  if (process.env.SOLIDITY_COVERAGE !== 'true') {
+    assert.equal(error.reason, expectedReason, `Expected revert reason "${expectedReason}" but failed with "${error.reason || 'no reason'}" instead.`);
+  }
 }
 
 export function getProposalAddress(tx) {

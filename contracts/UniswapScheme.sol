@@ -31,6 +31,7 @@ contract UniswapScheme is VotingMachineCallbacks, ProposalExecuteInterface {
       address token2;
     }
 
+    bool                             public initialized;
     Avatar                           public avatar;
     IntVoteInterface                 public votingMachine;
     bytes32                          public voteParams;
@@ -50,6 +51,16 @@ contract UniswapScheme is VotingMachineCallbacks, ProposalExecuteInterface {
     // seed events
     // TODO
 
+    modifier isInitialized () {
+      require(initialized, "UniswapScheme: scheme not initialized");
+      _;
+    }
+
+    modifier isNotInitialized () {
+      require(!initialized, "UniswapScheme: scheme already initialized");
+      _;
+    }
+
     /**
      * @dev                  Initialize scheme.
      * @param _avatar        The address of the Avatar on behalf of which this scheme interacts with UniswapV2.
@@ -57,10 +68,10 @@ contract UniswapScheme is VotingMachineCallbacks, ProposalExecuteInterface {
      * @param _voteParams    The parameters of the voting machine controlling this scheme.
      * @param _router        The address of the Uniswap router through which this scheme will interact with UniswapV2.
      */
-    function initialize(Avatar _avatar, IntVoteInterface _votingMachine, bytes32 _voteParams, IUniswapV2Router02 _router) external {
-        require(avatar == Avatar(0),  "UniswapScheme: scheme already initialized");
+    function initialize(Avatar _avatar, IntVoteInterface _votingMachine, bytes32 _voteParams, IUniswapV2Router02 _router) external isNotInitialized {
         require(_avatar != Avatar(0), "UniswapScheme: avatar cannot be null");
 
+        initialized = true;
         avatar = _avatar;
         votingMachine = _votingMachine;
         voteParams = _voteParams;
@@ -74,8 +85,9 @@ contract UniswapScheme is VotingMachineCallbacks, ProposalExecuteInterface {
      * @param _amount   The amount of `_from` token to swap.
      * @param _expected The minimum amount of `_to` token to expect in return for the swap [reverts otherwise]
      */
-    function swap(address _from, address _to, uint256 _amount, uint256 _expected) public returns (bytes32) {
-      require(_amount > 0, "UniswapScheme: invalid swap amount");
+    function swap(address _from, address _to, uint256 _amount, uint256 _expected) public isInitialized returns (bytes32) {
+      require(_amount > 0,  "UniswapScheme: invalid swap amount");
+      require(_from != _to, "UniswapScheme: invalid swap pair");
 
       bytes32 proposalId = votingMachine.propose(2, voteParams, msg.sender, address(avatar));
 
@@ -97,16 +109,16 @@ contract UniswapScheme is VotingMachineCallbacks, ProposalExecuteInterface {
      */
     function executeProposal(bytes32 _proposalId, int256 _decision) external onlyVotingMachine(_proposalId) returns (bool) {
       Proposal storage proposal = proposals[_proposalId];
+
       require(proposal.exists,  "UniswapScheme: proposal does not exist");
       require(!proposal.passed, "UniswapScheme: proposal already passed");
 
       emit ProposalExecutedByVotingMachine(_proposalId, _decision);
 
       if (_decision == 1) {
-          proposal.passed = true;
+        proposal.passed = true;
       } else {
-          delete proposals[_proposalId];
-          emit ProposalDeleted(_proposalId);
+        _delete(_proposalId, proposal.kind);
       }
 
       return true;
@@ -117,26 +129,20 @@ contract UniswapScheme is VotingMachineCallbacks, ProposalExecuteInterface {
      * @param _proposalId The id of the proposal in the voting machine.
      */
     function execute(bytes32 _proposalId) public {
-      // fetch proposal
       Proposal storage proposal = proposals[_proposalId];
-      // check whether proposal can be executed or not
       require(proposal.exists, "UniswapScheme: proposal does not exist");
       require(proposal.passed, "UniswapScheme: proposal is not passed yet");
-      // update states upfront to circumvent reentrancy attacks // _swap or _seed functions reverts in case of failure anyhow
+      // update states upfront to circumvent reentrancy attacks // _swap or _seed functions [and thus state updates] reverts in case of failure anyhow
       proposal.exists = false;
 
       if (proposal.kind == ProposalKind.Swap) {
         _swap(_proposalId);
-        // delete proposal in case of success // _swap reverts otherwise
-        delete proposals[_proposalId];
-        delete swapProposals[_proposalId];
-        // emit relevant events
         emit ProposalExecuted(_proposalId);
-        emit ProposalDeleted(_proposalId);
+        _delete(_proposalId, ProposalKind.Swap);
       }
     }
 
-    event Test2(bytes data);
+    /* internal state-modifying functions */
 
     function _swap(bytes32 _proposalId) internal {
       SwapProposal storage proposal = swapProposals[_proposalId];
@@ -144,6 +150,10 @@ contract UniswapScheme is VotingMachineCallbacks, ProposalExecuteInterface {
 
       if (proposal.from != address(0) && proposal.to != address(0)) {
         returned = _swapERC20s(proposal);
+      } else if (proposal.from == address(0)) {
+        returned = _swapFromETH(proposal);
+      } else if (proposal.to == address(0)) {
+        returned = _swapToETH(proposal);
       }
       emit SwapProposalExecuted(_proposalId, proposal.from, proposal.to, proposal.amount, proposal.expected, returned);
     }
@@ -164,18 +174,59 @@ contract UniswapScheme is VotingMachineCallbacks, ProposalExecuteInterface {
       (success, returned) = controller.genericCall(address(router), abi.encodeWithSelector(router.swapExactTokensForTokens.selector, _proposal.amount, _proposal.expected, path, avatar, block.timestamp), avatar, 0);
       require(success, 'UniswapScheme: swap failed');
 
-      return parseSwapReturnAmount(returned);
+      return _parseSwapReturnAmount(returned);
     }
 
-    // function _swapFromETH() internal returns (uint256) {
+    function _swapFromETH(SwapProposal storage _proposal) internal returns (uint256) {
+      Controller controller = Controller(avatar.owner());
+      // to be used later to store return values of `genericCall`
+      bytes memory returned;
+      bool success;
+      // prepare parameters
+      address[] memory path = new address[](2);
+      path[0] = router.WETH();
+      path[1] = _proposal.to;
+      // swap
+      (success, returned) = controller.genericCall(address(router), abi.encodeWithSelector(router.swapExactETHForTokens.selector, _proposal.expected, path, avatar, block.timestamp), avatar, _proposal.amount);
+      require(success, 'UniswapScheme: swap failed');
 
-    // }
+      return _parseSwapReturnAmount(returned);
+    }
 
-    // function _swapToETH() internal returns (uint256) {
+    function _swapToETH(SwapProposal storage _proposal) internal returns (uint256) {
+      Controller controller = Controller(avatar.owner());
+      // to be used later to store return values of `genericCall`
+      bytes memory returned;
+      bool success;
+      // prepare parameters
+      address[] memory path = new address[](2);
+      path[0] = _proposal.from;
+      path[1] = router.WETH();
+      // approve ERC20 `transferFrom`
+      (success, returned) = controller.genericCall(_proposal.from, abi.encodeWithSelector(ERC20(_proposal.from).approve.selector, address(router), _proposal.amount), avatar, 0);
+      require(success, 'UniswapScheme: ERC20 approval failed before swap');
+      // swap
+      (success, returned) = controller.genericCall(address(router), abi.encodeWithSelector(router.swapExactTokensForETH.selector, _proposal.amount, _proposal.expected, path, avatar, block.timestamp), avatar, 0);
+      require(success, 'UniswapScheme: swap failed');
 
-    // }
+      return _parseSwapReturnAmount(returned);
+    }
 
-    function parseSwapReturnAmount(bytes memory data) public pure returns (uint256 amount) {
+    /* internal utility functions */
+
+    function _delete(bytes32 _proposalId, ProposalKind _kind) internal {
+      delete proposals[_proposalId];
+
+      if (_kind == ProposalKind.Swap) {
+        delete swapProposals[_proposalId];
+      } else if (_kind == ProposalKind.Seed) {
+        delete seedProposals[_proposalId];
+      }
+
+      emit ProposalDeleted(_proposalId);
+    }
+
+    function _parseSwapReturnAmount(bytes memory data) internal pure returns (uint256 amount) {
       assembly {
         amount := mload(add(data, 128))
       }

@@ -13,7 +13,7 @@
     "ganache:start": "bash scripts/ganache.sh",
     "ganache:stop": "bash scripts/ganache.sh stop",
     "test": "bash scripts/ganache.sh test",
-    "abi:copy": "mkdir -p node_modules/@daostack/migration/custom-abis && cp build/contracts/UniswapScheme.json node_modules/@daostack/migration/custom-abis/UniswapScheme.json",
+    "abi:copy": "mkdir -p node_modules/@daostack/migration/custom-abis && cp build/contracts/UniswapScheme.json node_modules/@daostack/migration/custom-abis/UniswapScheme.json && cp ./build/contracts/WETH9.json node_modules/@daostack/migration/custom-abis/WETH.json && cp ./build/contracts/UniswapV2Factory.json node_modules/@daostack/migration/custom-abis/UniswapV2Factory.json && cp build/contracts/UniswapV2Router02.json node_modules/@daostack/migration/custom-abis/UniswapV2Router.json",
     "migrate": "node scripts/migrate.js"
   },
   "dependencies": {

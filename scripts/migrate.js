@@ -12,7 +12,7 @@ async function migrate() {
     quiet: false,
     force: true,
     restart: true,
-    // output: process.env.OUTPUT_FILE,
+    // output: './data/migration.json',
     mnemonic: process.env.MNEMONIC,
     //   customAbisLocation: process.env.CUSTOM_ABI_LOCATION,
     params: {

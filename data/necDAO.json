@@ -18,14 +18,31 @@
       "voteParams": 1
     }
   ],
-  "StandAloneContracts": [],
+  "StandAloneContracts": [
+    {
+      "name": "WETH",
+      "fromArc": false
+    },
+    {
+      "name": "UniswapV2Factory",
+      "fromArc": false,
+      "constructor": true,
+      "params": ["0x0000000000000000000000000000000000000000"]
+    },
+    {
+      "name": "UniswapV2Router",
+      "fromArc": false,
+      "constructor": true,
+      "params": [{ "StandAloneContract": 1 }, { "StandAloneContract": 0 }]
+    }
+  ],
   "CustomSchemes": [
     {
       "name": "UniswapScheme",
       "alias": "UniswapScheme",
       "isUniversal": false,
-      "params": ["GenesisProtocolAddress", { "voteParams": 0 }],
-      "permissions": "0x00000001",
+      "params": ["GenesisProtocolAddress", { "voteParams": 0 }, { "StandAloneContract": 2 }],
+      "permissions": "0x0000001f",
       "fromArc": false
     }
   ],

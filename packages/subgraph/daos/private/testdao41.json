@@ -1,0 +1,39 @@
+{
+  "name": "Fastidious Colorist",
+  "Avatar": "0x1EaddB8b4095320cf44cEE3448ac73eeCD9A2D6D",
+  "DAOToken": "0x375f4ecc738EE3175FA00F5bC13a47DC15AbeBd7",
+  "Reputation": "0xcBDFAB17efb4F1b5cd3B05615D7e32415fa80d10",
+  "Controller": "0x923F16917b0929CC08F5Fa35113F3e207aEE4fB3",
+  "Schemes": [
+    {
+      "name": "GenericScheme",
+      "alias": "GenericSchemeAlias",
+      "address": "0x158CBa029dE5D141f0e6e264de7b4F22C1c6A700",
+      "arcVersion": "0.0.1-rc.41"
+    },
+    {
+      "name": "ContributionRewardExt",
+      "alias": "ContributionRewardExt",
+      "address": "0x3f63362ef1a187dcec09C5C951DB47be3FddBF11",
+      "arcVersion": "0.0.1-rc.43"
+    }
+  ],
+  "StandAloneContracts": [
+    {
+      "name": "Wallet",
+      "address": "0x12eb8682598481A2AEb01F86B3d9DBF00291Ef7D",
+      "arcVersion": "0.0.1-rc.41"
+    },
+    {
+      "name": "ContributionRewardExt",
+      "address": "0x3f63362ef1a187dcec09C5C951DB47be3FddBF11",
+      "arcVersion": "0.0.1-rc.43"
+    },
+    {
+      "name": "Competition",
+      "address": "0xd5484bb1F891023ABC512902d6F5949E3AC063e4",
+      "arcVersion": "0.0.1-rc.43"
+    }
+  ],
+  "arcVersion": "0.0.1-rc.41"
+}

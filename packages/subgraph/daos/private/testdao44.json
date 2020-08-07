@@ -1,0 +1,17 @@
+{
+  "name": "necDAO",
+  "Avatar": "0x2F8F55BE726513C8b3EC5ad4a353f3a3A2A162A8",
+  "DAOToken": "0xe8AdE457E81594Fc7B7f340B9aa067839F3d6d74",
+  "Reputation": "0xa05098DB97F2B102C2aE1BCf8892d28da8BEC4F5",
+  "Controller": "0x78c4b3D30174548c4220e5AB6e9326eA1b1bDb33",
+  "Schemes": [
+    {
+      "name": "GenericScheme",
+      "alias": "GenericSchemeUniswap",
+      "address": "0xbd9A61d72be109605F2bD5ac26ede00ccb8e5051",
+      "arcVersion": "0.0.1-rc.44"
+    }
+  ],
+  "StandAloneContracts": [],
+  "arcVersion": "0.0.1-rc.44"
+}

@@ -1,0 +1,10 @@
+{
+  "name": "necDAO",
+  "Avatar": "0xBb29215bbAf046bB1ba66FC8096087a8eFa8Efff",
+  "DAOToken": "0x09351096f7F537f0806F35Fd618DcE015839a5A3",
+  "Reputation": "0x28B60B53E17aC764126c7E2C1075f021e7C0Ebf5",
+  "Controller": "0x2C364b9De3B408D0F6182F33C93ad008383345e1",
+  "Schemes": [],
+  "StandAloneContracts": [],
+  "arcVersion": "0.0.1-rc.44"
+}

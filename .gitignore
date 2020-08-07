@@ -1,18 +1,28 @@
+# lerna
+lerna-debug.log
+
 # dependencies
 node_modules
+**/*/node_modules
 
 # lock
 package-lock.json
+**/*/package-lock.json
 
 # truffle
-# build/
+# **/*/build/
+
+# cache data
+packages/contracts/scripts/deployed.json
 
 # coverage
-coverage
-coverageEnv
-coverage.json
-allFiredEvents
-scTopics
+*/**/coverage
+*/**/coverageEnv
+*/**/coverage.json
+*/**/allFiredEvents
+*/**/scTopics
 
 # macOS shit
 .DS_Store
+*/**/.DS_Store
+

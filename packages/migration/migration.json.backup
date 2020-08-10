@@ -307,21 +307,21 @@
       },
       "0.0.1-rc.34": {
         "GEN": "0xe78A0F7E598Cc8b0Bb87894B0F60dD2a88d6a8Ab",
-        "DAORegistry": "0x65825B3d4BC9F9273074eFe2a3E34Fb00A22061C",
-        "DAOTracker": "0x1F347D6B3D70DB76a85b9c8433b7981d45b443F7",
-        "ControllerCreator": "0x82D92750167e8CB6F9757EF5EA68B3F207603B31",
-        "DaoCreator": "0xd65427c730cAA7F2ac9537F9d067173806d36662",
-        "GenesisProtocol": "0xc5eE4Af326796ccb8011812124522E454cC8A704",
-        "SchemeRegistrar": "0x7c30f58e7Fd67B595d17cC0b64766248896Fa7A4",
-        "UpgradeScheme": "0x310e92E288044e72B787aDeBe622A874f2F54E35",
-        "GlobalConstraintRegistrar": "0x0803c6fAf803AbBD5E877e8a53Ed1be0b134F2f5",
-        "ContributionReward": "0x60121797e0fcD878542ef12cD5Db9A65e1d0d79c",
-        "AbsoluteVote": "0x48972819Edf66CFcA3076DC7997e2ffF13d55Db5",
-        "QuorumVote": "0xb8E560f766fE3E7F292fc18435951F05756bA777",
-        "TokenCapGC": "0xC2090Fa107F4f0665A9Cb529B174c287D379Ae7c",
-        "VoteInOrganizationScheme": "0x7BbF6Cf910827ca1Ebf3a5E6952e94F9Fb570864",
-        "OrganizationRegister": "0xeF29bCDC1f0f4A98B9FDDD1A4717Ca3279A44c13",
-        "Redeemer": "0x9283124318C61630f481F264795B4D5d8A033b2f"
+        "DAORegistry": "0xe751E401B220080981c17ff386195Bfa447bc4ED",
+        "DAOTracker": "0xA3d11db1823547b6434b3e821d14b58d9dDD819E",
+        "ControllerCreator": "0x1CE1152F315BDFD001f9DdcB0B982B490662e632",
+        "DaoCreator": "0xF30031788e1b8641B4531edf552753ce1BfdD5C4",
+        "GenesisProtocol": "0x28Cf74E0Fa8D518a854044cE044f135700482b91",
+        "SchemeRegistrar": "0xFb809153124ab0e7c3E4213435b6675e63743d3F",
+        "UpgradeScheme": "0xDe269cA74A01f84248FAdeb7C856d06cF9c68E09",
+        "GlobalConstraintRegistrar": "0x7326Bef2964008d4a8ae16AA851533859655b2f6",
+        "ContributionReward": "0xf520767FDBE4443F89F37714EE1BeEC0BDF05B79",
+        "AbsoluteVote": "0x8437d85b21a4bf71e53FB49CC957752286246cd2",
+        "QuorumVote": "0x9c44cE1d0067f8E3F33b268F162a3DC6a3c36308",
+        "TokenCapGC": "0xBd5196d6B8b2bA3B30a99Dd209197f149214b0eb",
+        "VoteInOrganizationScheme": "0x012A2C3C6f7F198A52E2820aEB48208d453EEa17",
+        "OrganizationRegister": "0x931985167bD678bA850156fc717443c34C856424",
+        "Redeemer": "0x4a931bfa7331009b0973c615b6D0B4FCCd5A89bb"
       },
       "0.0.1-rc.35": {
         "GEN": "0xe78A0F7E598Cc8b0Bb87894B0F60dD2a88d6a8Ab",
@@ -1088,20 +1088,42 @@
         "arcVersion": "0.0.1-rc.33"
       },
       "0.0.1-rc.34": {
-        "name": "necDAO",
-        "Avatar": "0xfE63c87393D7A3640E399Ca5895BeF759263b36c",
-        "DAOToken": "0x1F941aaCAff449335E15f69f266710820613691d",
-        "Reputation": "0x77dda6c1a8E22363392D247f0bd0f410Fe6A3be5",
-        "Controller": "0xe87bfb4f87FFabEFF362D33c05a7ea1561FB9261",
+        "name": "Judicious Laser",
+        "Avatar": "0xdaBdF92D1FE4c7dA414c570a880eAf640d4a4579",
+        "DAOToken": "0x7743ae18888Be1692358aABA3EBb69c3b16852c3",
+        "Reputation": "0x8F9360CD85bF1364A4515f020600358Cf512b2e8",
+        "Controller": "0x51518A4557031063Cd4Be67c01d52217887992e5",
         "Schemes": [
           {
             "name": "GenericScheme",
-            "alias": "GenericSchemeUniswap",
-            "address": "0x43125F336de6456504B340F7bdd418993b5b035d",
+            "alias": "GenericSchemeAlias",
+            "address": "0x1c205F14B71b7d02A5F6af719F2d6abe6CE1140D",
             "arcVersion": "0.0.1-rc.34"
+          },
+          {
+            "name": "ContributionRewardExt",
+            "alias": "ContributionRewardExt",
+            "address": "0x30ac1D5546Af7382986f8357919f6BDeDa09442F",
+            "arcVersion": "0.0.1-rc.43"
           }
         ],
-        "StandAloneContracts": [],
+        "StandAloneContracts": [
+          {
+            "name": "Wallet",
+            "address": "0xba1B19248020B0dfcDc9C53eAE31722B478334aE",
+            "arcVersion": "0.0.1-rc.34"
+          },
+          {
+            "name": "ContributionRewardExt",
+            "address": "0x30ac1D5546Af7382986f8357919f6BDeDa09442F",
+            "arcVersion": "0.0.1-rc.43"
+          },
+          {
+            "name": "Competition",
+            "address": "0xea8beafa3ABF2eC7e2404550EcaECfcD999C0d5B",
+            "arcVersion": "0.0.1-rc.43"
+          }
+        ],
         "arcVersion": "0.0.1-rc.34"
       },
       "0.0.1-rc.35": {

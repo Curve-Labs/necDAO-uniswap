@@ -11,7 +11,7 @@ import './uniswap/IUniswapV2Router02.sol';
  */
 contract UniswapScheme {
   bool               public initialized;
-  Avatar             public avatar;
+  address            public avatar;
   IUniswapV2Router02 public router;
 
   // swap events
@@ -34,8 +34,8 @@ contract UniswapScheme {
     * @param _avatar The address of the Avatar controlling this scheme.
     * @param _router The address of the Uniswap router through which this scheme will interact with UniswapV2.
     */
-  function initialize(Avatar _avatar, IUniswapV2Router02 _router) external isNotInitialized {
-      require(_avatar != Avatar(0), "UniswapScheme: avatar cannot be null");
+  function initialize(address _avatar, IUniswapV2Router02 _router) external isNotInitialized {
+      require(_avatar != address(0), "UniswapScheme: avatar cannot be null");
 
       initialized = true;
       avatar = _avatar;
@@ -65,15 +65,15 @@ contract UniswapScheme {
     if (_from != address(0) && _to != address(0)) {
       path[0] = _from;
       path[1] = _to;
-      returned = router.swapExactTokensForTokens(_amount, _expected, path, avatar, block.timestamp);
+      returned = router.swapExactTokensForTokens(_amount, _expected, path, avatar, block.timestamp)[0];
     } else if (_from == address(0)) {
       path[0] = router.WETH();
       path[1] = _to;
-      returned = router.swapExactETHForTokens.value(_amount)(_expected, path, avatar, block.timestamp);
+      returned = router.swapExactETHForTokens.value(_amount)(_expected, path, avatar, block.timestamp)[0];
     } else if (_to == address(0)) {
       path[0] = _from;
       path[1] = router.WETH();
-      returned = router.swapExactTokensForETH(_amount, _expected, path, avatar, block.timestamp);
+      returned = router.swapExactTokensForETH(_amount, _expected, path, avatar, block.timestamp)[0];
     }
     emit Swap(_from, _to, _amount, _expected, returned);
   }

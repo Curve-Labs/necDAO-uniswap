@@ -9,7 +9,7 @@
     "url": "git+https://github.com/Curve-Labs/necDAO-uniswap.git"
   },
   "scripts": {
-    "compile": "npx truffle compile && npm run abi:copy",
+    "compile": "npx truffle compile",
     "ganache:start": "bash scripts/ganache.sh",
     "ganache:stop": "bash scripts/ganache.sh stop",
     "test": "bash scripts/ganache.sh test",

@@ -1,10 +1,12 @@
 {
   "name": "necDAO",
-  "Avatar": "0xBb29215bbAf046bB1ba66FC8096087a8eFa8Efff",
-  "DAOToken": "0x09351096f7F537f0806F35Fd618DcE015839a5A3",
-  "Reputation": "0x28B60B53E17aC764126c7E2C1075f021e7C0Ebf5",
-  "Controller": "0x2C364b9De3B408D0F6182F33C93ad008383345e1",
-  "Schemes": [],
+  "Avatar": "0xfE63c87393D7A3640E399Ca5895BeF759263b36c",
+  "DAOToken": "0x1F941aaCAff449335E15f69f266710820613691d",
+  "Reputation": "0x77dda6c1a8E22363392D247f0bd0f410Fe6A3be5",
+  "Controller": "0xe87bfb4f87FFabEFF362D33c05a7ea1561FB9261",
+  "Schemes": [
+    { "name": "GenericScheme", "alias": "GenericSchemeUniswap", "address": "0x43125F336de6456504B340F7bdd418993b5b035d", "arcVersion": "0.0.1-rc.34" }
+  ],
   "StandAloneContracts": [],
-  "arcVersion": "0.0.1-rc.44"
+  "arcVersion": "0.0.1-rc.34"
 }

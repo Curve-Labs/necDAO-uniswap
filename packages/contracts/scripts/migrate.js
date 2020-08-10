@@ -1,7 +1,7 @@
 const DAOstackMigration = require('@daostack/migration');
 const migrationSpec = require('../data/necDAO.json');
-// const fs = require('fs').promises;
-// var path = require('path');
+const fs = require('fs').promises;
+var path = require('path');
 require('dotenv').config();
 
 const deployed = require('./deployed.json');
@@ -10,10 +10,13 @@ const deployed = require('./deployed.json');
 // const INITIAL_CASH_SUPPLY = '2000000000000000000000';
 // const ROOT = '0x90F8bf6A479f320ead074411a4B0e7944Ea8c9C1';
 
+const INDEXED_PATH = '../../subgraph/daos/private/testdao45.json';
+
 const migrate = async () => {
   migrationSpec.CustomSchemes[0].params[2] = deployed.scheme;
   const options = {
     //   provider: process.env.PROVIDER,
+    arcVersion: '0.0.1-rc.34',
     gasPrice: 3.5,
     gasLimit: 9990000,
     quiet: false,
@@ -37,8 +40,15 @@ const migrate = async () => {
   }
   const migrationDAOResult = await DAOstackMigration.migrateDAO(options);
   console.log(migrationDAOResult);
-  const avatar = migrationDAOResult.dao['0.0.1-rc.44'].Avatar;
-  console.log(avatar);
+  const DAO = migrationDAOResult.dao['0.0.1-rc.34'];
+  console.log(DAO.Avatar);
+  const indexed = require(path.join(__dirname, INDEXED_PATH));
+  indexed.Avatar = DAO.Avatar;
+  indexed.DAOToken = DAO.DAOToken;
+  indexed.Reputation = DAO.Reputation;
+  indexed.Controller = DAO.Controller;
+  indexed.Schemes[0].address = DAO.Schemes[0].address;
+  await fs.writeFile(path.join(__dirname, INDEXED_PATH), JSON.stringify(indexed), 'utf8');
 };
 
 migrate();

@@ -9,6 +9,7 @@
     "clean": "lerna clean",
     "docker:run": "cd packages/subgraph && npm run docker:run",
     "docker:stop": "cd packages/subgraph && npm run docker:stop",
+    "docker:clean": "docker image rm -f daostack/test-env-ganache:3.0.33 daostack/test-env-ipfs:3.0.33 graphprotocol/graph-node:v0.18.0",
     "subgraph": "cd packages/subgraph && npm run deploy"
   },
   "devDependencies": {

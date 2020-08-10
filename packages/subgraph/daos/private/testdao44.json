@@ -1,17 +1,39 @@
 {
-  "name": "necDAO",
-  "Avatar": "0x2F8F55BE726513C8b3EC5ad4a353f3a3A2A162A8",
-  "DAOToken": "0xe8AdE457E81594Fc7B7f340B9aa067839F3d6d74",
-  "Reputation": "0xa05098DB97F2B102C2aE1BCf8892d28da8BEC4F5",
-  "Controller": "0x78c4b3D30174548c4220e5AB6e9326eA1b1bDb33",
+  "name": "Adroit Miller",
+  "Avatar": "0x66D4c65A59C775476C2cC401f43aa6F057516901",
+  "DAOToken": "0xb49AF00901a1A0aCDd19B92a3731088C9B53ee44",
+  "Reputation": "0x6310bb08D60468A3779ed309BFA840B5b6D4292F",
+  "Controller": "0xF135a59fC1cbC4D893bcC924f3806E7d1c7B4339",
   "Schemes": [
     {
       "name": "GenericScheme",
-      "alias": "GenericSchemeUniswap",
-      "address": "0xbd9A61d72be109605F2bD5ac26ede00ccb8e5051",
+      "alias": "GenericSchemeAlias",
+      "address": "0xC929Be61278f558b4c24AF601016d16E2E02b31e",
       "arcVersion": "0.0.1-rc.44"
+    },
+    {
+      "name": "ContributionRewardExt",
+      "alias": "ContributionRewardExt",
+      "address": "0xeF29bCDC1f0f4A98B9FDDD1A4717Ca3279A44c13",
+      "arcVersion": "0.0.1-rc.43"
     }
   ],
-  "StandAloneContracts": [],
+  "StandAloneContracts": [
+    {
+      "name": "Wallet",
+      "address": "0xC2090Fa107F4f0665A9Cb529B174c287D379Ae7c",
+      "arcVersion": "0.0.1-rc.44"
+    },
+    {
+      "name": "ContributionRewardExt",
+      "address": "0xeF29bCDC1f0f4A98B9FDDD1A4717Ca3279A44c13",
+      "arcVersion": "0.0.1-rc.43"
+    },
+    {
+      "name": "Competition",
+      "address": "0x9283124318C61630f481F264795B4D5d8A033b2f",
+      "arcVersion": "0.0.1-rc.43"
+    }
+  ],
   "arcVersion": "0.0.1-rc.44"
 }

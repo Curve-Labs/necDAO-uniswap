@@ -16,13 +16,14 @@ contract UniswapProxy {
 
   event Swap (address from, address to, uint256 amount, uint256 expected, uint256 returned);
 
-  modifier isInitialized () {
-    require(initialized, "UniswapProxy: proxy not initialized");
+  modifier isNotInitialized () {
+    require(!initialized, "UniswapProxy: proxy already initialized");
     _;
   }
 
-  modifier isNotInitialized () {
-    require(!initialized, "UniswapProxy: proxy already initialized");
+  modifier protected () {
+    require(initialized,                   "UniswapProxy: proxy not initialized");
+    require(msg.sender == address(avatar), "UniswapProxy: protected function");
     _;
   }
 
@@ -49,11 +50,10 @@ contract UniswapProxy {
     * @param _amount   The amount of `_from` token to swap.
     * @param _expected The minimum amount of `_to` token to expect in return for the swap [reverts otherwise]
     */
-  function swap(address _from, address _to, uint256 _amount, uint256 _expected) public isInitialized {
+  function swap(address _from, address _to, uint256 _amount, uint256 _expected) public protected {
     require(_amount > 0,  "UniswapScheme: invalid swap amount");
     require(_from != _to, "UniswapScheme: invalid swap pair");
 
-    // emit Test();
     _swap(_from, _to, _amount, _expected);
   }
 

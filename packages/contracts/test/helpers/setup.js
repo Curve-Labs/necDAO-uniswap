@@ -2,10 +2,11 @@ const ERC20 = artifacts.require('ERC20Mock');
 const ControllerCreator = artifacts.require('./ControllerCreator.sol');
 const DaoCreator = artifacts.require('./DaoCreator.sol');
 const DAOTracker = artifacts.require('./DAOTracker.sol');
-const UniswapScheme = artifacts.require('UniswapScheme');
+const UniswapProxy = artifacts.require('UniswapProxy');
 const UniswapV2Factory = artifacts.require('UniswapV2Factory');
-const UniswapV2Router = artifacts.require('UniswapV2Router02');
-const WETH = artifacts.require('WETH9');
+const UniswapV2Router = artifacts.require('UniswapV2Router');
+const WETH = artifacts.require('WETH');
+const GenericScheme = artifacts.require('GenericScheme');
 import * as helpers from './index';
 const constants = require('./constants');
 
@@ -85,16 +86,31 @@ export const organization = async (setup) => {
   return organization;
 };
 
+export const proxy = async (setup) => {
+  // deploy proxy
+  const proxy = await UniswapProxy.new();
+  // initialize proxy
+  await proxy.initialize(setup.organization.avatar.address, setup.uniswap.router.address);
+
+  return proxy;
+};
+
 export const scheme = async (setup) => {
   // deploy scheme
-  const scheme = await UniswapScheme.new();
+  const scheme = await GenericScheme.new();
   // deploy scheme voting machine
   scheme.voting = await helpers.setupAbsoluteVote(helpers.NULL_ADDRESS, 50, scheme.address);
   // initialize scheme
-  await scheme.initialize(setup.organization.avatar.address, scheme.voting.absoluteVote.address, scheme.voting.params, setup.uniswap.router.address);
+  await scheme.initialize(setup.organization.avatar.address, scheme.voting.absoluteVote.address, scheme.voting.params, setup.proxy.address);
   // register scheme
-  const permissions = '0x0000001f';
-  await setup.DAOStack.daoCreator.setSchemes(setup.organization.avatar.address, [scheme.address], [helpers.NULL_HASH], [permissions], 'metaData');
+  const permissions = '0x00000010';
+  await setup.DAOStack.daoCreator.setSchemes(
+    setup.organization.avatar.address,
+    [setup.proxy.address, scheme.address],
+    [helpers.NULL_HASH, helpers.NULL_HASH],
+    [permissions, permissions],
+    'metaData'
+  );
 
   return scheme;
 };

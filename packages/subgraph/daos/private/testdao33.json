@@ -1,39 +1,17 @@
 {
-  "name": "Adamant Stylist",
-  "Avatar": "0x2268317B403ADEc49Fde9241a977335aba406A55",
-  "DAOToken": "0x78B7beA9fB68616E4520DC2F522833616f6413d5",
-  "Reputation": "0x0819C56Db86FbC6Cb3e0ef63F7DF0c4d5e60d915",
-  "Controller": "0x26bc7F1d9642BB480B01dE689deA64b97Fdd332B",
+  "name": "necDAO",
+  "Avatar": "0x4d604A55A8DB05127CC70A651876AfBD3319508E",
+  "DAOToken": "0xC5461D4329cC702f8750a19Db0a7dd6D69bBFE70",
+  "Reputation": "0x70F0Df3b969C88365B157F4040e4F066Da81c743",
+  "Controller": "0x0c10B107565042DCA3C43541A319a71B006dC429",
   "Schemes": [
     {
       "name": "GenericScheme",
-      "alias": "GenericSchemeAlias",
-      "address": "0x6884D17Fac0FBd05382cF562E86DE82c79e26117",
+      "alias": "GenericSchemeUniswap",
+      "address": "0x2215Bf07b2E51dcfD167006B570af4e8cEB1F007",
       "arcVersion": "0.0.1-rc.33"
-    },
-    {
-      "name": "ContributionRewardExt",
-      "alias": "ContributionRewardExt",
-      "address": "0xFa117aD3aEC87df869C456d91f6731950Cfef6ee",
-      "arcVersion": "0.0.1-rc.43"
     }
   ],
-  "StandAloneContracts": [
-    {
-      "name": "Wallet",
-      "address": "0x44b2C55F5CAe26D328F047a547d766E6BE836eb9",
-      "arcVersion": "0.0.1-rc.33"
-    },
-    {
-      "name": "ContributionRewardExt",
-      "address": "0xFa117aD3aEC87df869C456d91f6731950Cfef6ee",
-      "arcVersion": "0.0.1-rc.43"
-    },
-    {
-      "name": "Competition",
-      "address": "0x017383Ddb609fdbf85B80910A34936a733DA0913",
-      "arcVersion": "0.0.1-rc.43"
-    }
-  ],
+  "StandAloneContracts": [],
   "arcVersion": "0.0.1-rc.33"
 }

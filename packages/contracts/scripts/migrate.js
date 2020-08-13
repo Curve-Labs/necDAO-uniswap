@@ -13,10 +13,10 @@ const deployed = require('./deployed.json');
 const INDEXED_PATH = '../../subgraph/daos/private/testdao45.json';
 
 const migrate = async () => {
-  migrationSpec.CustomSchemes[0].params[2] = deployed.scheme;
+  migrationSpec.CustomSchemes[1].params[2] = deployed.proxy;
   const options = {
     //   provider: process.env.PROVIDER,
-    arcVersion: '0.0.1-rc.34',
+    arcVersion: '0.0.1-rc.33',
     gasPrice: 3.5,
     gasLimit: 9990000,
     quiet: false,
@@ -33,14 +33,16 @@ const migrate = async () => {
   // migrate base contracts over ganache
   switch (process.env.NETWORK) {
     case 'private':
+      console.log('before');
       const migrationBaseResult = await DAOstackMigration.migrateBase(options);
       // console.log(migrationBaseResult);
       // options.previousMigration = { base: migrationBaseResult };
       break;
   }
+  console.log('after');
   const migrationDAOResult = await DAOstackMigration.migrateDAO(options);
   console.log(migrationDAOResult);
-  const DAO = migrationDAOResult.dao['0.0.1-rc.34'];
+  const DAO = migrationDAOResult.dao['0.0.1-rc.33'];
   console.log(DAO.Avatar);
   const indexed = require(path.join(__dirname, INDEXED_PATH));
   indexed.Avatar = DAO.Avatar;

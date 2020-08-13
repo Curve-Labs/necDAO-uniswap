@@ -2,35 +2,24 @@
   "orgName": "necDAO",
   "tokenName": "Nectar",
   "tokenSymbol": "NEC",
-  "ContributionReward": [
-    {
-      "voteParams": 0
-    }
-  ],
-  "SchemeRegistrar": [
-    {
-      "voteRegisterParams": 1,
-      "voteRemoveParams": 1
-    }
-  ],
-  "UpgradeScheme": [
-    {
-      "voteParams": 1
-    }
-  ],
+  "ContributionReward": [{ "voteParams": 0 }],
+  "SchemeRegistrar": [{ "voteRegisterParams": 1, "voteRemoveParams": 1 }],
+  "UpgradeScheme": [{ "voteParams": 1 }],
   "StandAloneContracts": [],
   "CustomSchemes": [
+    {
+      "name": "UniswapProxy",
+      "alias": "UniswapProxy",
+      "isUniversal": false,
+      "address": "0x1a8b7FD8EC04ab1586753cB1614E54De2269104F",
+      "params": ["0x0Ca8A551544d39eb71BD0F70Af22e126C263409A"],
+      "permissions": "0x00000010"
+    },
     {
       "name": "GenericScheme",
       "schemeName": "GenericScheme",
       "isUniversal": false,
-      "params": [
-        "GenesisProtocolAddress",
-        {
-          "voteParams": 1
-        },
-        "0x"
-      ],
+      "params": ["GenesisProtocolAddress", { "voteParams": 1 }, "0x"],
       "permissions": "0x00000010",
       "alias": "GenericSchemeUniswap",
       "fromArc": true
@@ -66,21 +55,9 @@
       "votersReputationLossRatio": 0
     }
   ],
-  "schemes": {
-    "ContributionReward": true,
-    "GenericScheme": false,
-    "SchemeRegistrar": true,
-    "GlobalConstraintRegistrar": false,
-    "UpgradeScheme": true
-  },
+  "schemes": { "ContributionReward": true, "GenericScheme": false, "SchemeRegistrar": true, "GlobalConstraintRegistrar": false, "UpgradeScheme": true },
   "unregisterOwner": true,
   "useUController": false,
   "useDaoCreator": true,
-  "founders": [
-    {
-      "address": "0x90F8bf6A479f320ead074411a4B0e7944Ea8c9C1",
-      "tokens": 100,
-      "reputation": 100
-    }
-  ]
+  "founders": [{ "address": "0x90F8bf6A479f320ead074411a4B0e7944Ea8c9C1", "tokens": 100, "reputation": 100 }]
 }

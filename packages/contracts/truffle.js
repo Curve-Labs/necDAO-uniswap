@@ -1,5 +1,4 @@
-require('babel-register');
-require('babel-polyfill');
+require('@babel/register');
 
 const gasReporter = {
   reporter: 'eth-gas-reporter',

@@ -28,6 +28,7 @@
     "@daostack/migration": "0.0.1-rc.44-v0",
     "@openzeppelin/test-helpers": "^0.5.6",
     "chai": "^4.2.0",
+    "core-js": "^3.6.5",
     "dotenv": "^8.2.0",
     "ganache-cli": "6.10.0-beta.2",
     "js-sha3": "^0.8.0",

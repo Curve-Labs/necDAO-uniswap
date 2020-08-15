@@ -16,7 +16,7 @@ contract UniswapProxy {
 
   event Swap (address from, address to, uint256 amount, uint256 expected, uint256 returned);
 
-  modifier isNotInitialized () {
+  modifier initializer() {
     require(!initialized, "UniswapProxy: proxy already initialized");
     _;
   }
@@ -28,20 +28,17 @@ contract UniswapProxy {
   }
 
   /**
-    * @dev           Initialize scheme.
-    * @param _avatar The address of the Avatar controlling this scheme.
-    * @param _router The address of the Uniswap router through which this scheme will interact with UniswapV2.
+    * @dev           Initialize proxy.
+    * @param _avatar The address of the Avatar controlling this proxy.
+    * @param _router The address of the Uniswap router through which this proxy will interact with UniswapV2.
     */
-  function initialize(Avatar _avatar, IUniswapV2Router02 _router) external isNotInitialized {
+  function initialize(Avatar _avatar, IUniswapV2Router02 _router) external initializer {
       require(_avatar != Avatar(0), "UniswapProxy: avatar cannot be null");
 
       initialized = true;
       avatar = _avatar;
       router = _router;
   }
-
-  event Test();
-
 
   /**
     * @dev             Swap tokens.
@@ -51,8 +48,8 @@ contract UniswapProxy {
     * @param _expected The minimum amount of `_to` token to expect in return for the swap [reverts otherwise].
     */
   function swap(address _from, address _to, uint256 _amount, uint256 _expected) public protected {
-    require(_amount > 0,  "UniswapScheme: invalid swap amount");
-    require(_from != _to, "UniswapScheme: invalid swap pair");
+    require(_amount > 0,  "UniswapProxy: invalid swap amount");
+    require(_from != _to, "UniswapProxy: invalid swap pair");
 
     _swap(_from, _to, _amount, _expected);
   }
@@ -74,13 +71,15 @@ contract UniswapProxy {
       (success, returned) = controller.genericCall(address(router), abi.encodeWithSelector(router.swapExactTokensForTokens.selector, _amount, _expected, path, avatar, block.timestamp), avatar, 0);
       require(success, 'UniswapProxy: swap failed');
     } else if (_from == address(0)) {
-      // path[0] = router.WETH();
-      // path[1] = _to;
-      // returned = router.swapExactETHForTokens.value(_amount)(_expected, path, avatar, block.timestamp)[0];
+      path[0] = router.WETH();
+      path[1] = _to;
+      (success, returned) = controller.genericCall(address(router), abi.encodeWithSelector(router.swapExactETHForTokens.selector, _expected, path, avatar, block.timestamp), avatar, _amount);
+      require(success, 'UniswapProxy: swap failed');
     } else if (_to == address(0)) {
-      // path[0] = _from;
-      // path[1] = router.WETH();
-      // returned = router.swapExactTokensForETH(_amount, _expected, path, avatar, block.timestamp)[0];
+      path[0] = _from;
+      path[1] = router.WETH();
+      (success, returned) = controller.genericCall(address(router), abi.encodeWithSelector(router.swapExactTokensForETH.selector, _amount, _expected, path, avatar, block.timestamp), avatar, 0);
+      require(success, 'UniswapProxy: swap failed');
     }
 
     emit Swap(_from, _to, _amount, _expected, _parseSwapReturnAmount(returned));

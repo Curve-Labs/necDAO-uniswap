@@ -1,10 +1,16 @@
 import { assert } from 'chai';
 import * as helpers from './helpers';
 const UniswapProxy = artifacts.require('UniswapProxy');
+const {
+  BN, // Big Number support
+} = require('@openzeppelin/test-helpers');
 
 const encodeSwap = (from, to, amount, expected) => {
   return new web3.eth.Contract(UniswapProxy.abi).methods.swap(from, to, amount, expected).encodeABI();
 };
+
+const AMOUNT = new BN('1000');
+const EXPECTED = new BN('500');
 
 const deploy = async (accounts) => {
   // initialize test setup
@@ -19,10 +25,42 @@ const deploy = async (accounts) => {
   setup.organization = await helpers.setup.organization(setup);
   // deploy proxy
   setup.proxy = await helpers.setup.proxy(setup);
-  // deploy uniswap scheme
+  // deploy generic scheme
   setup.scheme = await helpers.setup.scheme(setup);
 
   return setup;
+};
+
+const swap = async (setup, which = 'ERC20s') => {
+  switch (which) {
+    case 'ERC20s':
+      const calldata = encodeSwap(setup.tokens.erc20s[0].address, setup.tokens.erc20s[1].address, AMOUNT.toString(), EXPECTED.toString());
+      const _tx = await setup.scheme.proposeCall(calldata, 0, helpers.NULL_HASH);
+      const proposalId = helpers.getValueFromLogs(_tx, '_proposalId');
+      const tx = await setup.scheme.voting.absoluteVote.vote(proposalId, 1, 0, helpers.NULL_ADDRESS);
+      const proposal = await setup.scheme.organizationProposals(proposalId);
+      setup.data.tx = tx;
+      setup.data.proposal = proposal;
+      break;
+    default:
+      throw new Error('Unknown swap type');
+  }
+};
+
+const swapFailed = async (setup, which = 'ERC20s') => {
+  switch (which) {
+    case 'ERC20s':
+      const calldata = encodeSwap(setup.tokens.erc20s[0].address, setup.tokens.erc20s[1].address, AMOUNT.toString(), AMOUNT.toString());
+      const _tx = await setup.scheme.proposeCall(calldata, 0, helpers.NULL_HASH);
+      const proposalId = helpers.getValueFromLogs(_tx, '_proposalId');
+      const tx = await setup.scheme.voting.absoluteVote.vote(proposalId, 1, 0, helpers.NULL_ADDRESS);
+      const proposal = await setup.scheme.organizationProposals(proposalId);
+      setup.data.tx = tx;
+      setup.data.proposal = proposal;
+      break;
+    default:
+      throw new Error('Unknown swap type');
+  }
 };
 
 contract('UniswapScheme', (accounts) => {
@@ -55,37 +93,58 @@ contract('UniswapScheme', (accounts) => {
 
   context('# swap', () => {
     context('> proxy is initialized', () => {
-      context('> and swap is triggered by the avatar', () => {
-        context('> and swap returns enough tokens', () => {
-          context('> ERC20 to ERC20', () => {
-            let tx,
-              balances = [];
+      context('> swap is triggered by avatar', () => {
+        context('> ERC20 to ERC20', () => {
+          context('> swap returns enough tokens', () => {
             before('!! execute swap', async () => {
-              balances[0] = (await setup.tokens.erc20s[0].balanceOf(setup.organization.avatar.address)).toNumber();
-              balances[1] = (await setup.tokens.erc20s[1].balanceOf(setup.organization.avatar.address)).toNumber();
+              setup.data.balances[0] = await setup.tokens.erc20s[0].balanceOf(setup.organization.avatar.address);
+              setup.data.balances[1] = await setup.tokens.erc20s[1].balanceOf(setup.organization.avatar.address);
 
-              const calldata = encodeSwap(setup.tokens.erc20s[0].address, setup.tokens.erc20s[1].address, '1000', '500');
-              const _tx = await setup.scheme.proposeCall(calldata, 0, helpers.NULL_HASH);
-              const proposalId = helpers.getValueFromLogs(_tx, '_proposalId');
-              tx = await setup.scheme.voting.absoluteVote.vote(proposalId, 1, 0, helpers.NULL_ADDRESS, { from: accounts[0] });
+              await swap(setup);
             });
 
             it('it emits a Swap event', async () => {
-              helpers.assertExternalEvent(tx, 'Swap(address,address,uint256,uint256,uint256)');
+              helpers.assertExternalEvent(setup.data.tx, 'Swap(address,address,uint256,uint256,uint256)');
+              const event = helpers.getValueFromExternalSwapEvent(setup.data.tx);
+
+              assert.equal(event.from, setup.tokens.erc20s[0].address);
+              assert.equal(event.to, setup.tokens.erc20s[1].address);
+              assert.equal(event.amount, AMOUNT);
+              assert.equal(event.expected, EXPECTED);
+              assert.isAbove(Number(event.returned), 0);
             });
 
             it('it swaps tokens', async () => {
-              assert.isBelow((await setup.tokens.erc20s[0].balanceOf(setup.organization.avatar.address)).toNumber(), balances[0]);
-              assert.isAbove((await setup.tokens.erc20s[1].balanceOf(setup.organization.avatar.address)).toNumber(), balances[1]);
+              const returned = new BN(helpers.getValueFromExternalSwapEvent(setup.data.tx).returned);
+              assert.equal((await setup.tokens.erc20s[0].balanceOf(setup.organization.avatar.address)).toNumber(), setup.data.balances[0].sub(AMOUNT));
+              assert.equal((await setup.tokens.erc20s[1].balanceOf(setup.organization.avatar.address)).toNumber(), setup.data.balances[1].add(returned));
+            });
+          });
+
+          context('> swap does not return enough tokens', () => {
+            before('!! execute swap', async () => {
+              setup.data.balances[0] = (await setup.tokens.erc20s[0].balanceOf(setup.organization.avatar.address)).toNumber();
+              setup.data.balances[1] = (await setup.tokens.erc20s[1].balanceOf(setup.organization.avatar.address)).toNumber();
+
+              await swapFailed(setup);
+            });
+
+            it('it reverts [proposal is still live]', async () => {
+              assert.equal(setup.data.proposal.exist, true);
+            });
+
+            it('it reverts [balances are constants]', async () => {
+              assert.equal((await setup.tokens.erc20s[0].balanceOf(setup.organization.avatar.address)).toNumber(), setup.data.balances[0]);
+              assert.equal((await setup.tokens.erc20s[1].balanceOf(setup.organization.avatar.address)).toNumber(), setup.data.balances[1]);
             });
           });
         });
       });
 
-      context('> function is not called by the avatar', () => {
+      context('> swap is not triggered by avatar', () => {
         it('it reverts', async () => {
           await helpers.assertRevert(
-            setup.proxy.swap(setup.tokens.erc20s[0].address, setup.tokens.erc20s[1].address, '1000', '500'),
+            setup.proxy.swap(setup.tokens.erc20s[0].address, setup.tokens.erc20s[1].address, AMOUNT, EXPECTED),
             'UniswapProxy: protected function'
           );
         });

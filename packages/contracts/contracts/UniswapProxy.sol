@@ -44,11 +44,11 @@ contract UniswapProxy {
 
 
   /**
-    * @dev             Submit a proposal to swap tokens.
+    * @dev             Swap tokens.
     * @param _from     The address of the token to swap from [address(0) for ETH].
     * @param _to       The address of the token to swap to [address(0) for ETH].
     * @param _amount   The amount of `_from` token to swap.
-    * @param _expected The minimum amount of `_to` token to expect in return for the swap [reverts otherwise]
+    * @param _expected The minimum amount of `_to` token to expect in return for the swap [reverts otherwise].
     */
   function swap(address _from, address _to, uint256 _amount, uint256 _expected) public protected {
     require(_amount > 0,  "UniswapScheme: invalid swap amount");
@@ -84,10 +84,6 @@ contract UniswapProxy {
     }
 
     emit Swap(_from, _to, _amount, _expected, _parseSwapReturnAmount(returned));
-  }
-
-  function test() public {
-    emit Test();
   }
 
   function _parseSwapReturnAmount(bytes memory data) internal pure returns (uint256 amount) {

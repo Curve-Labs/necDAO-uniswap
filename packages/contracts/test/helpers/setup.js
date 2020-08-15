@@ -18,7 +18,8 @@ const REPUTATION = '1000';
 export const initialize = async (root) => {
   const setup = new helpers.TestSetup();
   setup.root = root;
-
+  setup.data = {};
+  setup.data.balances = [];
   return setup;
 };
 

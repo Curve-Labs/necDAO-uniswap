@@ -81,6 +81,39 @@ export function assertExternalEvent(tx, eventName, instances = 1) {
   return events;
 }
 
+export function getValueFromExternalSwapEvent(tx, index = 0) {
+  const event = tx.receipt.rawLogs.filter((l) => {
+    return l.topics[0] === '0x' + sha3('Swap(address,address,uint256,uint256,uint256)');
+  })[index];
+
+  return web3.eth.abi.decodeLog(
+    [
+      {
+        type: 'address',
+        name: 'from',
+      },
+      {
+        type: 'address',
+        name: 'to',
+      },
+      {
+        type: 'uint256',
+        name: 'amount',
+      },
+      {
+        type: 'uint256',
+        name: 'expected',
+      },
+      {
+        type: 'uint256',
+        name: 'returned',
+      },
+    ],
+    event.data,
+    [event.topics]
+  );
+}
+
 export function getValueFromLogs(tx, arg, eventName, index = 0) {
   /**
    *
@@ -170,7 +203,7 @@ export function assertJump(error) {
   assert.isAbove(error.message.search('invalid JUMP'), -1, 'Invalid JUMP error must be returned' + error.message);
 }
 
-export const setupAbsoluteVote = async function (voteOnBehalf = NULL_ADDRESS, precReq = 50) {
+export const setupAbsoluteVote = async function(voteOnBehalf = NULL_ADDRESS, precReq = 50) {
   var votingMachine = new VotingMachine();
   votingMachine.absoluteVote = await AbsoluteVote.new();
   // register some parameters
@@ -179,7 +212,7 @@ export const setupAbsoluteVote = async function (voteOnBehalf = NULL_ADDRESS, pr
   return votingMachine;
 };
 
-export const setupGenesisProtocol = async function (
+export const setupGenesisProtocol = async function(
   accounts,
   token,
   avatar,
@@ -239,7 +272,7 @@ export const setupGenesisProtocol = async function (
   return votingMachine;
 };
 
-export const setupOrganizationWithArrays = async function (daoCreator, daoCreatorOwner, founderToken, founderReputation, cap = 0) {
+export const setupOrganizationWithArrays = async function(daoCreator, daoCreatorOwner, founderToken, founderReputation, cap = 0) {
   var org = new Organization();
   var tx = await daoCreator.forgeOrg('testOrg', 'TEST', 'TST', daoCreatorOwner, founderToken, founderReputation, cap, { gas: constants.ARC_GAS_LIMIT });
   assert.equal(tx.logs.length, 1);
@@ -253,7 +286,7 @@ export const setupOrganizationWithArrays = async function (daoCreator, daoCreato
   return org;
 };
 
-export const setupOrganization = async function (daoCreator, daoCreatorOwner, founderToken, founderReputation, cap = 0) {
+export const setupOrganization = async function(daoCreator, daoCreatorOwner, founderToken, founderReputation, cap = 0) {
   var org = new Organization();
   var tx = await daoCreator.forgeOrg('testOrg', 'TEST', 'TST', [daoCreatorOwner], [founderToken], [founderReputation], cap, { gas: constants.ARC_GAS_LIMIT });
   assert.equal(tx.logs.length, 1);
@@ -267,7 +300,7 @@ export const setupOrganization = async function (daoCreator, daoCreatorOwner, fo
   return org;
 };
 
-export const checkVoteInfo = async function (absoluteVote, proposalId, voterAddress, _voteInfo) {
+export const checkVoteInfo = async function(absoluteVote, proposalId, voterAddress, _voteInfo) {
   let voteInfo;
   voteInfo = await absoluteVote.voteInfo(proposalId, voterAddress);
   // voteInfo has the following structure
@@ -277,7 +310,7 @@ export const checkVoteInfo = async function (absoluteVote, proposalId, voterAddr
   assert.equal(voteInfo[1].toNumber(), _voteInfo[1]);
 };
 
-export const checkVotesStatus = async function (proposalId, _votesStatus, votingMachine) {
+export const checkVotesStatus = async function(proposalId, _votesStatus, votingMachine) {
   let voteStatus;
   for (var i = 0; i < _votesStatus.length; i++) {
     voteStatus = await votingMachine.voteStatus(proposalId, i);
@@ -292,7 +325,7 @@ export async function getProposalId(tx, contract, eventName) {
       fromBlock: tx.blockNumber,
       toBlock: 'latest',
     })
-    .then(function (events) {
+    .then(function(events) {
       proposalId = events[0].args._proposalId;
     });
   return proposalId;
@@ -316,7 +349,7 @@ export async function getProposalId(tx, contract, eventName) {
 //     });
 //   }
 // Increases testrpc time by the passed duration in seconds
-export const increaseTime = async function (duration) {
+export const increaseTime = async function(duration) {
   const id = await Date.now();
 
   web3.providers.HttpProvider.prototype.sendAsync = web3.providers.HttpProvider.prototype.send;

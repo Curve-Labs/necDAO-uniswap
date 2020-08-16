@@ -108,7 +108,7 @@ contract('UniswapScheme', (accounts) => {
   context('# swap', () => {
     context('» proxy is initialized', () => {
       context('» swap is triggered by avatar', () => {
-        context.only('» ERC20 to ERC20', () => {
+        context('» ERC20 to ERC20', () => {
           context('» swap returns enough tokens', () => {
             before('!! execute swap', async () => {
               setup.data.balances[0] = await setup.tokens.erc20s[0].balanceOf(setup.organization.avatar.address);
@@ -156,31 +156,28 @@ contract('UniswapScheme', (accounts) => {
           });
         });
 
-        context.only('» ETH to ERC20', () => {
+        context('» ETH to ERC20', () => {
           context('» swap returns enough tokens', () => {
             before('!! execute swap', async () => {
-              setup.data.balances[0] = new BN(await web3.eth.getBalance(setup.organization.avatar.address));
+              setup.data.balances[0] = await balance.current(setup.organization.avatar.address);
               setup.data.balances[1] = await setup.tokens.erc20s[0].balanceOf(setup.organization.avatar.address);
 
               await swap(setup, 'ETHToERC20');
             });
 
             it('it emits a Swap event', async () => {
-              helpers.assertExternalEvent(setup.data.tx, 'Swap(address,address,uint256,uint256,uint256)');
-              const event = helpers.getValueFromExternalSwapEvent(setup.data.tx);
-
-              assert.equal(event.from, constants.ZERO_ADDRESS);
-              assert.equal(event.to, setup.tokens.erc20s[0].address);
-              assert.equal(event.amount, AMOUNT);
-              assert.equal(event.expected, EXPECTED);
-              assert.isAbove(Number(event.returned), 0);
+              await expectEvent.inTransaction(setup.data.tx.tx, setup.proxy, 'Swap', {
+                from: constants.ZERO_ADDRESS,
+                to: setup.tokens.erc20s[0].address,
+                amount: AMOUNT,
+                expected: EXPECTED,
+                returned: RETURNED,
+              });
             });
 
             it('it swaps tokens', async () => {
-              const returned = new BN(helpers.getValueFromExternalSwapEvent(setup.data.tx).returned);
-
-              assert.equal(await web3.eth.getBalance(setup.organization.avatar.address), setup.data.balances[0].sub(AMOUNT));
-              assert.equal((await setup.tokens.erc20s[0].balanceOf(setup.organization.avatar.address)).toNumber(), setup.data.balances[1].add(returned));
+              expect(await balance.current(setup.organization.avatar.address)).to.be.bignumber.equal(setup.data.balances[0].sub(AMOUNT));
+              expect(await setup.tokens.erc20s[0].balanceOf(setup.organization.avatar.address)).to.be.bignumber.equal(setup.data.balances[1].add(RETURNED));
             });
           });
 
@@ -206,10 +203,7 @@ contract('UniswapScheme', (accounts) => {
 
       context('> swap is not triggered by avatar', () => {
         it('it reverts', async () => {
-          await helpers.assertRevert(
-            setup.proxy.swap(setup.tokens.erc20s[0].address, setup.tokens.erc20s[1].address, AMOUNT, EXPECTED),
-            'UniswapProxy: protected function'
-          );
+          await expectRevert(setup.proxy.swap(constants.ZERO_ADDRESS, setup.tokens.erc20s[0].address, AMOUNT, EXPECTED), 'UniswapProxy: protected function');
         });
       });
     });

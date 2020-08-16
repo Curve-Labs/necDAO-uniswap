@@ -7,23 +7,51 @@ const UniswapV2Factory = artifacts.require('UniswapV2Factory');
 const UniswapV2Router = artifacts.require('UniswapV2Router');
 const WETH = artifacts.require('WETH');
 const GenericScheme = artifacts.require('GenericScheme');
-import * as helpers from './index';
-const constants = require('./constants');
+const Avatar = artifacts.require('./Avatar.sol');
+const DAOToken = artifacts.require('./DAOToken.sol');
+const Reputation = artifacts.require('./Reputation.sol');
+const AbsoluteVote = artifacts.require('./AbsoluteVote.sol');
 
+const { constants } = require('@openzeppelin/test-helpers');
+
+const ARC_GAS_LIMIT = 6200000;
 const INITIAL_CASH_SUPPLY = '2000000000000000000000';
 const INITIAL_CASH_BALANCE = '100000000000000';
 const DAO_TOKENS = '100';
 const REPUTATION = '1000';
 
-export const initialize = async (root) => {
-  const setup = new helpers.TestSetup();
+const deployOrganization = async (daoCreator, daoCreatorOwner, founderToken, founderReputation, cap = 0) => {
+  var org = {};
+  var tx = await daoCreator.forgeOrg('testOrg', 'TEST', 'TST', daoCreatorOwner, founderToken, founderReputation, cap, { gas: constants.ARC_GAS_LIMIT });
+  assert.equal(tx.logs.length, 1);
+  assert.equal(tx.logs[0].event, 'NewOrg');
+  var avatarAddress = tx.logs[0].args._avatar;
+  org.avatar = await Avatar.at(avatarAddress);
+  var tokenAddress = await org.avatar.nativeToken();
+  org.token = await DAOToken.at(tokenAddress);
+  var reputationAddress = await org.avatar.nativeReputation();
+  org.reputation = await Reputation.at(reputationAddress);
+  return org;
+};
+
+const setAbsoluteVote = async (voteOnBehalf = constants.ZERO_ADDRESS, precReq = 50) => {
+  var votingMachine = {};
+  votingMachine.absoluteVote = await AbsoluteVote.new();
+  // register some parameters
+  await votingMachine.absoluteVote.setParameters(precReq, voteOnBehalf);
+  votingMachine.params = await votingMachine.absoluteVote.getParametersHash(precReq, voteOnBehalf);
+  return votingMachine;
+};
+
+const initialize = async (root) => {
+  const setup = {};
   setup.root = root;
   setup.data = {};
   setup.data.balances = [];
   return setup;
 };
 
-export const tokens = async (setup) => {
+const tokens = async (setup) => {
   const weth = await WETH.new();
   const erc20s = [await ERC20.new(setup.root, INITIAL_CASH_SUPPLY), await ERC20.new(setup.root, INITIAL_CASH_SUPPLY)];
   await weth.deposit({ value: INITIAL_CASH_BALANCE });
@@ -31,9 +59,9 @@ export const tokens = async (setup) => {
   return { weth, erc20s };
 };
 
-export const uniswap = async (setup) => {
-  // deploy unisswap infrastructure
-  const factory = await UniswapV2Factory.new(helpers.NULL_ADDRESS);
+const uniswap = async (setup) => {
+  // deploy uniswap infrastructure
+  const factory = await UniswapV2Factory.new(constants.ZERO_ADDRESS);
   const router = await UniswapV2Router.new(factory.address, setup.tokens.weth.address);
   // create uniswap pairs
   await factory.createPair(setup.tokens.erc20s[0].address, setup.tokens.erc20s[1].address);
@@ -68,17 +96,17 @@ export const uniswap = async (setup) => {
   return { factory, router };
 };
 
-export const DAOStack = async () => {
-  const controllerCreator = await ControllerCreator.new({ gas: constants.ARC_GAS_LIMIT });
-  const daoTracker = await DAOTracker.new({ gas: constants.ARC_GAS_LIMIT });
-  const daoCreator = await DaoCreator.new(controllerCreator.address, daoTracker.address, { gas: constants.ARC_GAS_LIMIT });
+const DAOStack = async () => {
+  const controllerCreator = await ControllerCreator.new({ gas: ARC_GAS_LIMIT });
+  const daoTracker = await DAOTracker.new({ gas: ARC_GAS_LIMIT });
+  const daoCreator = await DaoCreator.new(controllerCreator.address, daoTracker.address, { gas: ARC_GAS_LIMIT });
 
   return { controllerCreator, daoTracker, daoCreator };
 };
 
-export const organization = async (setup) => {
+const organization = async (setup) => {
   // deploy organization
-  const organization = await helpers.setupOrganizationWithArrays(setup.DAOStack.daoCreator, [setup.root], [DAO_TOKENS], [REPUTATION]);
+  const organization = await deployOrganization(setup.DAOStack.daoCreator, [setup.root], [DAO_TOKENS], [REPUTATION]);
   // transfer remaining of roots' balances to the organization avatar
   await setup.tokens.erc20s[0].transfer(organization.avatar.address, INITIAL_CASH_BALANCE);
   await setup.tokens.erc20s[1].transfer(organization.avatar.address, INITIAL_CASH_BALANCE);
@@ -87,7 +115,7 @@ export const organization = async (setup) => {
   return organization;
 };
 
-export const proxy = async (setup) => {
+const proxy = async (setup) => {
   // deploy proxy
   const proxy = await UniswapProxy.new();
   // initialize proxy
@@ -96,11 +124,11 @@ export const proxy = async (setup) => {
   return proxy;
 };
 
-export const scheme = async (setup) => {
+const scheme = async (setup) => {
   // deploy scheme
   const scheme = await GenericScheme.new();
   // deploy scheme voting machine
-  scheme.voting = await helpers.setupAbsoluteVote(helpers.NULL_ADDRESS, 50, scheme.address);
+  scheme.voting = await setAbsoluteVote(constants.ZERO_ADDRESS, 50, scheme.address);
   // initialize scheme
   await scheme.initialize(setup.organization.avatar.address, scheme.voting.absoluteVote.address, scheme.voting.params, setup.proxy.address);
   // register scheme
@@ -108,10 +136,20 @@ export const scheme = async (setup) => {
   await setup.DAOStack.daoCreator.setSchemes(
     setup.organization.avatar.address,
     [setup.proxy.address, scheme.address],
-    [helpers.NULL_HASH, helpers.NULL_HASH],
+    [constants.ZERO_BYTES32, constants.ZERO_BYTES32],
     [permissions, permissions],
     'metaData'
   );
 
   return scheme;
+};
+
+module.exports = {
+  initialize,
+  tokens,
+  uniswap,
+  DAOStack,
+  organization,
+  proxy,
+  scheme,
 };

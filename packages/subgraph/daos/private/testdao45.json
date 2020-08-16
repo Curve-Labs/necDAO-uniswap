@@ -1,12 +1,1 @@
-{
-  "name": "necDAO",
-  "Avatar": "0xfE63c87393D7A3640E399Ca5895BeF759263b36c",
-  "DAOToken": "0x1F941aaCAff449335E15f69f266710820613691d",
-  "Reputation": "0x77dda6c1a8E22363392D247f0bd0f410Fe6A3be5",
-  "Controller": "0xe87bfb4f87FFabEFF362D33c05a7ea1561FB9261",
-  "Schemes": [
-    { "name": "GenericScheme", "alias": "GenericSchemeUniswap", "address": "0x43125F336de6456504B340F7bdd418993b5b035d", "arcVersion": "0.0.1-rc.34" }
-  ],
-  "StandAloneContracts": [],
-  "arcVersion": "0.0.1-rc.34"
-}
+{"name":"necDAO","Avatar":"0xcE15D052865681544aEa56448EC49EC2BFb84D5c","DAOToken":"0x3e62e74Dfdb92cA9e9c87e502bd89a21938cdb3e","Reputation":"0x5407075064b4160764fD9F92D2375e0599BfBEE2","Controller":"0x323413652Ac5393E76C3f1E5Fe6632f1f3733aDd","Schemes":[{"name":"GenericScheme","alias":"GenericSchemeUniswap","address":"0x1a8b7FD8EC04ab1586753cB1614E54De2269104F","arcVersion":"0.0.1-rc.34"}],"StandAloneContracts":[],"arcVersion":"0.0.1-rc.33"}

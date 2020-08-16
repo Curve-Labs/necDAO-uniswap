@@ -11,6 +11,8 @@ package-lock.json
 
 # truffle
 # **/*/build/
+**/*/artifacts
+**/*/cache
 
 # cache data
 packages/contracts/scripts/deployed.json

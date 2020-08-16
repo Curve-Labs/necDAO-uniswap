@@ -1,5 +1,5 @@
-import { assert } from 'chai';
-import * as helpers from './helpers';
+const { assert } = require('chai');
+const helpers = require('./helpers');
 const UniswapProxy = artifacts.require('UniswapProxy');
 
 const { BN, balance, constants, expectEvent, expectRevert } = require('@openzeppelin/test-helpers');
@@ -36,18 +36,18 @@ const swap = async (setup, which = 'ERC20s') => {
   switch (which) {
     case 'ERC20s':
       const calldata1 = encodeSwap(setup.tokens.erc20s[0].address, setup.tokens.erc20s[1].address, AMOUNT.toString(), EXPECTED.toString());
-      const _tx1 = await setup.scheme.proposeCall(calldata1, 0, helpers.NULL_HASH);
+      const _tx1 = await setup.scheme.proposeCall(calldata1, 0, constants.ZERO_BYTES32);
       const proposalId1 = helpers.getValueFromLogs(_tx1, '_proposalId');
-      const tx1 = await setup.scheme.voting.absoluteVote.vote(proposalId1, 1, 0, helpers.NULL_ADDRESS);
+      const tx1 = await setup.scheme.voting.absoluteVote.vote(proposalId1, 1, 0, constants.ZERO_ADDRESS);
       const proposal1 = await setup.scheme.organizationProposals(proposalId1);
       setup.data.tx = tx1;
       setup.data.proposal = proposal1;
       break;
     case 'ETHToERC20':
-      const calldata2 = encodeSwap(helpers.NULL_ADDRESS, setup.tokens.erc20s[0].address, AMOUNT.toString(), EXPECTED.toString());
-      const _tx2 = await setup.scheme.proposeCall(calldata2, 0, helpers.NULL_HASH);
+      const calldata2 = encodeSwap(constants.ZERO_ADDRESS, setup.tokens.erc20s[0].address, AMOUNT.toString(), EXPECTED.toString());
+      const _tx2 = await setup.scheme.proposeCall(calldata2, 0, constants.ZERO_BYTES32);
       const proposalId2 = helpers.getValueFromLogs(_tx2, '_proposalId');
-      const tx2 = await setup.scheme.voting.absoluteVote.vote(proposalId2, 1, 0, helpers.NULL_ADDRESS);
+      const tx2 = await setup.scheme.voting.absoluteVote.vote(proposalId2, 1, 0, constants.ZERO_ADDRESS);
       const proposal2 = await setup.scheme.organizationProposals(proposalId2);
       setup.data.tx = tx2;
       setup.data.proposal = proposal2;
@@ -61,18 +61,18 @@ const swapFailed = async (setup, which = 'ERC20s') => {
   switch (which) {
     case 'ERC20s':
       const calldata = encodeSwap(setup.tokens.erc20s[0].address, setup.tokens.erc20s[1].address, AMOUNT.toString(), AMOUNT.toString());
-      const _tx = await setup.scheme.proposeCall(calldata, 0, helpers.NULL_HASH);
+      const _tx = await setup.scheme.proposeCall(calldata, 0, constants.ZERO_BYTES32);
       const proposalId = helpers.getValueFromLogs(_tx, '_proposalId');
-      const tx = await setup.scheme.voting.absoluteVote.vote(proposalId, 1, 0, helpers.NULL_ADDRESS);
+      const tx = await setup.scheme.voting.absoluteVote.vote(proposalId, 1, 0, constants.ZERO_ADDRESS);
       const proposal = await setup.scheme.organizationProposals(proposalId);
       setup.data.tx = tx;
       setup.data.proposal = proposal;
       break;
     case 'ETHToERC20':
-      const calldata2 = encodeSwap(helpers.NULL_ADDRESS, setup.tokens.erc20s[0].address, AMOUNT.toString(), AMOUNT.toString());
-      const _tx2 = await setup.scheme.proposeCall(calldata2, 0, helpers.NULL_HASH);
+      const calldata2 = encodeSwap(constants.ZERO_ADDRESS, setup.tokens.erc20s[0].address, AMOUNT.toString(), AMOUNT.toString());
+      const _tx2 = await setup.scheme.proposeCall(calldata2, 0, constants.ZERO_BYTES32);
       const proposalId2 = helpers.getValueFromLogs(_tx2, '_proposalId');
-      const tx2 = await setup.scheme.voting.absoluteVote.vote(proposalId2, 1, 0, helpers.NULL_ADDRESS);
+      const tx2 = await setup.scheme.voting.absoluteVote.vote(proposalId2, 1, 0, constants.ZERO_ADDRESS);
       const proposal2 = await setup.scheme.organizationProposals(proposalId2);
       setup.data.tx = tx2;
       setup.data.proposal = proposal2;
@@ -169,7 +169,7 @@ contract('UniswapScheme', (accounts) => {
               helpers.assertExternalEvent(setup.data.tx, 'Swap(address,address,uint256,uint256,uint256)');
               const event = helpers.getValueFromExternalSwapEvent(setup.data.tx);
 
-              assert.equal(event.from, helpers.NULL_ADDRESS);
+              assert.equal(event.from, constants.ZERO_ADDRESS);
               assert.equal(event.to, setup.tokens.erc20s[0].address);
               assert.equal(event.amount, AMOUNT);
               assert.equal(event.expected, EXPECTED);

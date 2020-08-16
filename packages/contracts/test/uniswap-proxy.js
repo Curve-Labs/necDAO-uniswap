@@ -108,8 +108,8 @@ contract('UniswapScheme', (accounts) => {
   context('# swap', () => {
     context('» proxy is initialized', () => {
       context('» swap is triggered by avatar', () => {
-        context('» ERC20 to ERC20', () => {
-          context.only('» swap returns enough tokens', () => {
+        context.only('» ERC20 to ERC20', () => {
+          context('» swap returns enough tokens', () => {
             before('!! execute swap', async () => {
               setup.data.balances[0] = await setup.tokens.erc20s[0].balanceOf(setup.organization.avatar.address);
               setup.data.balances[1] = await setup.tokens.erc20s[1].balanceOf(setup.organization.avatar.address);
@@ -117,7 +117,7 @@ contract('UniswapScheme', (accounts) => {
               await swap(setup);
             });
 
-            it('it emits a `Swap` event', async () => {
+            it('it emits a Swap event', async () => {
               await expectEvent.inTransaction(setup.data.tx.tx, setup.proxy, 'Swap', {
                 from: setup.tokens.erc20s[0].address,
                 to: setup.tokens.erc20s[1].address,
@@ -133,27 +133,31 @@ contract('UniswapScheme', (accounts) => {
             });
           });
 
-          context('> swap does not return enough tokens', () => {
+          context('» swap does not return enough tokens', () => {
             before('!! execute swap', async () => {
-              setup.data.balances[0] = (await setup.tokens.erc20s[0].balanceOf(setup.organization.avatar.address)).toNumber();
-              setup.data.balances[1] = (await setup.tokens.erc20s[1].balanceOf(setup.organization.avatar.address)).toNumber();
+              setup.data.balances[0] = await setup.tokens.erc20s[0].balanceOf(setup.organization.avatar.address);
+              setup.data.balances[1] = await setup.tokens.erc20s[1].balanceOf(setup.organization.avatar.address);
 
               await swapFailed(setup);
             });
 
-            it('it reverts [proposal is still live]', async () => {
-              assert.equal(setup.data.proposal.exist, true);
+            it('proposal is still live', async () => {
+              expect(setup.data.proposal.exist).to.equal(true);
             });
 
-            it('it reverts [balances are constants]', async () => {
-              assert.equal((await setup.tokens.erc20s[0].balanceOf(setup.organization.avatar.address)).toNumber(), setup.data.balances[0]);
-              assert.equal((await setup.tokens.erc20s[1].balanceOf(setup.organization.avatar.address)).toNumber(), setup.data.balances[1]);
+            it('no Swap event is emitted', async () => {
+              await expectEvent.notEmitted.inTransaction(setup.data.tx.tx, setup.proxy, 'Swap');
+            });
+
+            it('balances are constants', async () => {
+              expect(await setup.tokens.erc20s[0].balanceOf(setup.organization.avatar.address)).to.be.bignumber.equal(setup.data.balances[0]);
+              expect(await setup.tokens.erc20s[1].balanceOf(setup.organization.avatar.address)).to.be.bignumber.equal(setup.data.balances[1]);
             });
           });
         });
 
-        context.only('> ETH to ERC20', () => {
-          context('> swap returns enough tokens', () => {
+        context.only('» ETH to ERC20', () => {
+          context('» swap returns enough tokens', () => {
             before('!! execute swap', async () => {
               setup.data.balances[0] = new BN(await web3.eth.getBalance(setup.organization.avatar.address));
               setup.data.balances[1] = await setup.tokens.erc20s[0].balanceOf(setup.organization.avatar.address);
@@ -180,7 +184,7 @@ contract('UniswapScheme', (accounts) => {
             });
           });
 
-          context('> swap does not return enough tokens', () => {
+          context('» swap does not return enough tokens', () => {
             before('!! execute swap', async () => {
               setup.data.balances[0] = new BN(await web3.eth.getBalance(setup.organization.avatar.address));
               setup.data.balances[1] = await setup.tokens.erc20s[0].balanceOf(setup.organization.avatar.address);

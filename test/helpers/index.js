@@ -1,52 +1,15 @@
-const sha3 = require('js-sha3').keccak_256;
+const { BN } = require('@openzeppelin/test-helpers');
 const setup = require('./setup');
+const UniswapProxy = artifacts.require('UniswapProxy');
 
-function getNewProposalId(tx) {
-  return getValueFromLogs(tx, 'proposalId', 'NewProposal');
-}
+const AMOUNT = new BN('1000');
+const EXPECTED = new BN('500');
+const RETURNED = new BN('996');
 
-function assertExternalEvent(tx, eventName, instances = 1) {
-  const events = tx.receipt.rawLogs.filter((l) => {
-    return l.topics[0] === '0x' + sha3(eventName);
-  });
-  assert.equal(events.length, instances, `'${eventName}' event should have been fired ${instances} times`);
-  return events;
-}
-
-function getValueFromExternalSwapEvent(tx, index = 0) {
-  const event = tx.receipt.rawLogs.filter((l) => {
-    return l.topics[0] === '0x' + sha3('Swap(address,address,uint256,uint256,uint256)');
-  })[index];
-
-  return web3.eth.abi.decodeLog(
-    [
-      {
-        type: 'address',
-        name: 'from',
-      },
-      {
-        type: 'address',
-        name: 'to',
-      },
-      {
-        type: 'uint256',
-        name: 'amount',
-      },
-      {
-        type: 'uint256',
-        name: 'expected',
-      },
-      {
-        type: 'uint256',
-        name: 'returned',
-      },
-    ],
-    event.data,
-    [event.topics]
-  );
-}
-
-function getValueFromLogs(tx, arg, eventName, index = 0) {
+const encodeSwap = (from, to, amount, expected) => {
+  return new web3.eth.Contract(UniswapProxy.abi).methods.swap(from, to, amount, expected).encodeABI();
+};
+const getValueFromLogs = (tx, arg, eventName, index = 0) => {
   /**
    *
    * tx.logs look like this:
@@ -87,12 +50,19 @@ function getValueFromLogs(tx, arg, eventName, index = 0) {
     throw new Error(msg);
   }
   return result;
-}
+};
+
+const getNewProposalId = (tx) => {
+  return getValueFromLogs(tx, '_proposalId', 'NewProposal');
+};
 
 module.exports = {
   setup,
+  encodeSwap,
   getNewProposalId,
-  assertExternalEvent,
-  getValueFromExternalSwapEvent,
-  getValueFromLogs,
+  values: {
+    AMOUNT,
+    EXPECTED,
+    RETURNED,
+  },
 };

@@ -109,7 +109,7 @@ contract('UniswapProxy', (accounts) => {
     context('» proxy is initialized', () => {
       context('» swap is triggered by avatar', () => {
         context('» ERC20 to ERC20', () => {
-          context('» swap returns enough tokens', () => {
+          context('» swap succeeds', () => {
             before('!! execute swap', async () => {
               setup.data.balances[0] = await setup.tokens.erc20s[0].balanceOf(setup.organization.avatar.address);
               setup.data.balances[1] = await setup.tokens.erc20s[1].balanceOf(setup.organization.avatar.address);
@@ -133,7 +133,7 @@ contract('UniswapProxy', (accounts) => {
             });
           });
 
-          context('» swap does not return enough tokens', () => {
+          context('» swap fails [return is less than expected]', () => {
             before('!! execute swap', async () => {
               setup.data.balances[0] = await setup.tokens.erc20s[0].balanceOf(setup.organization.avatar.address);
               setup.data.balances[1] = await setup.tokens.erc20s[1].balanceOf(setup.organization.avatar.address);
@@ -141,15 +141,15 @@ contract('UniswapProxy', (accounts) => {
               await swapFailed(setup);
             });
 
-            it('proposal is still live', async () => {
+            it('it keeps proposal live', async () => {
               expect(setup.data.proposal.exist).to.equal(true);
             });
 
-            it('no Swap event is emitted', async () => {
+            it('it emits no Swap event', async () => {
               await expectEvent.notEmitted.inTransaction(setup.data.tx.tx, setup.proxy, 'Swap');
             });
 
-            it('balances are constants', async () => {
+            it('it maintains balances', async () => {
               expect(await setup.tokens.erc20s[0].balanceOf(setup.organization.avatar.address)).to.be.bignumber.equal(setup.data.balances[0]);
               expect(await setup.tokens.erc20s[1].balanceOf(setup.organization.avatar.address)).to.be.bignumber.equal(setup.data.balances[1]);
             });
@@ -157,7 +157,7 @@ contract('UniswapProxy', (accounts) => {
         });
 
         context('» ETH to ERC20', () => {
-          context('» swap returns enough tokens', () => {
+          context('» swap succeeds', () => {
             before('!! execute swap', async () => {
               setup.data.balances[0] = await balance.current(setup.organization.avatar.address);
               setup.data.balances[1] = await setup.tokens.erc20s[0].balanceOf(setup.organization.avatar.address);
@@ -181,7 +181,7 @@ contract('UniswapProxy', (accounts) => {
             });
           });
 
-          context('» swap does not return enough tokens', () => {
+          context('» swap fails [return is less than expected]', () => {
             before('!! execute swap', async () => {
               setup.data.balances[0] = new BN(await web3.eth.getBalance(setup.organization.avatar.address));
               setup.data.balances[1] = await setup.tokens.erc20s[0].balanceOf(setup.organization.avatar.address);
@@ -189,11 +189,15 @@ contract('UniswapProxy', (accounts) => {
               await swapFailed(setup, 'ETHToERC20');
             });
 
-            it('it reverts [proposal is still live]', async () => {
+            it('it keeps proposal live', async () => {
               assert.equal(setup.data.proposal.exist, true);
             });
 
-            it('it reverts [balances are constants]', async () => {
+            it('it emits no Swap event', async () => {
+              await expectEvent.notEmitted.inTransaction(setup.data.tx.tx, setup.proxy, 'Swap');
+            });
+
+            it('it maintains balances', async () => {
               assert.equal(await web3.eth.getBalance(setup.organization.avatar.address), setup.data.balances[0]);
               assert.equal((await setup.tokens.erc20s[0].balanceOf(setup.organization.avatar.address)).toNumber(), setup.data.balances[1]);
             });

@@ -7,7 +7,7 @@ import './interfaces/IUniswapV2Router02.sol';
 
 /**
  * @title A UniswapV2 proxy made with ❤️ for the necDAO folks
- * @dev   We'll tell when we know
+ * @dev   Enable necDAO to swap tokens and provide liquidity through UniswapV2 pairs.
  */
 contract UniswapProxy {
     bool               public initialized;
@@ -18,6 +18,7 @@ contract UniswapProxy {
 
     modifier initializer() {
         require(!initialized, "UniswapProxy: proxy already initialized");
+        initialized = true;
         _;
     }
 
@@ -30,12 +31,12 @@ contract UniswapProxy {
     /**
       * @dev           Initialize proxy.
       * @param _avatar The address of the Avatar controlling this proxy.
-      * @param _router The address of the Uniswap router through which this proxy will interact with UniswapV2.
+      * @param _router The address of the UniswapV2 router through which this proxy will interact with UniswapV2.
       */
     function initialize(Avatar _avatar, IUniswapV2Router02 _router) external initializer {
-        require(_avatar != Avatar(0), "UniswapProxy: avatar cannot be null");
+        require(_avatar != Avatar(0),             "UniswapProxy: avatar cannot be null");
+        require(_router != IUniswapV2Router02(0), "UniswapProxy: router cannot be null");
 
-        initialized = true;
         avatar = _avatar;
         router = _router;
     }
@@ -54,7 +55,7 @@ contract UniswapProxy {
         _swap(_from, _to, _amount, _expected);
     }
 
-  /* internal state-modifying functions */
+    /* internal state-modifying functions */
 
     function _swap(address _from, address _to, uint256 _amount, uint256 _expected) internal {
         Controller       controller = Controller(avatar.owner());
@@ -65,14 +66,13 @@ contract UniswapProxy {
         if (_from != address(0) && _to != address(0)) {
             path[0] = _from;
             path[1] = _to;
-            // swap
             (success, returned) = controller.genericCall(
                 _from,
                 abi.encodeWithSelector(IERC20(_from).approve.selector, address(router), _amount),
                 avatar,
                 0
             );
-            require(success, 'UniswapProxy: ERC20 approval failed before swap');
+            require(success, 'UniswapProxy: ERC20 approval failed');
             (success, returned) = controller.genericCall(
                 address(router),
                 abi.encodeWithSelector(
@@ -116,10 +116,10 @@ contract UniswapProxy {
             require(success, 'UniswapProxy: swap failed');
         }
 
-        emit Swap(_from, _to, _amount, _expected, _parseSwapReturnAmount(returned));
+        emit Swap(_from, _to, _amount, _expected, _parseSwapReturn(returned));
     }
 
-    function _parseSwapReturnAmount(bytes memory data) internal pure returns (uint256 amount) {
+    function _parseSwapReturn(bytes memory data) internal pure returns (uint256 amount) {
         assembly {
             amount := mload(add(data, 128))
         }

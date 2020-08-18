@@ -11,15 +11,15 @@
       "name": "UniswapProxy",
       "alias": "UniswapProxy",
       "isUniversal": false,
-      "address": "0x1a8b7FD8EC04ab1586753cB1614E54De2269104F",
-      "params": ["0x0Ca8A551544d39eb71BD0F70Af22e126C263409A"],
+      "address": "",
+      "params": ["0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D"],
       "permissions": "0x00000010"
     },
     {
       "name": "GenericScheme",
       "schemeName": "GenericScheme",
       "isUniversal": false,
-      "params": ["GenesisProtocolAddress", { "voteParams": 1 }, "0x"],
+      "params": ["GenesisProtocolAddress", { "voteParams": 1 }, ""],
       "permissions": "0x00000010",
       "alias": "GenericSchemeUniswap",
       "fromArc": true

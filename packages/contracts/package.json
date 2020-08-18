@@ -9,12 +9,12 @@
     "url": "git+https://github.com/Curve-Labs/necDAO-uniswap.git"
   },
   "scripts": {
-    "compile": "npx buidler compile",
     "lint": "npx buidler check",
+    "compile": "npx buidler compile",
     "test": "npx buidler test",
+    "test:coverage": "npx buidler coverage --network coverage",
     "test:gas": "REPORT_GAS=TRUE npx buidler test",
-    "abi:copy": "mkdir -p node_modules/@daostack/migration/custom-abis && cp build/contracts/UniswapScheme.json node_modules/@daostack/migration/custom-abis/UniswapScheme.json && cp ./build/contracts/WETH9.json node_modules/@daostack/migration/custom-abis/WETH.json && cp ./build/contracts/UniswapV2Factory.json node_modules/@daostack/migration/custom-abis/UniswapV2Factory.json && cp build/contracts/UniswapV2Router02.json node_modules/@daostack/migration/custom-abis/UniswapV2Router.json",
-    "migrate": "truffle exec scripts/deploy.js && node scripts/migrate.js"
+    "deploy:rinkeby": "npx buidler deploy --reset --network rinkeby && npx buidler run scripts/migrate.js"
   },
   "dependencies": {
     "@daostack/arc": "0.0.1-rc.41",
@@ -28,9 +28,10 @@
     "@nomiclabs/buidler-truffle5": "^1.3.4",
     "@nomiclabs/buidler-web3": "^1.3.4",
     "@openzeppelin/test-helpers": "^0.5.6",
+    "buidler-deploy": "^0.5.17",
     "buidler-gas-reporter": "^0.1.3",
     "dotenv": "^8.2.0",
-    "js-sha3": "^0.8.0",
+    "solidity-coverage": "^0.7.9",
     "web3": "^1.2.11"
   }
 }

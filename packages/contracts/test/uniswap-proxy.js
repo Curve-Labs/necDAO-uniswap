@@ -82,7 +82,7 @@ const swapFailed = async (setup, which = 'ERC20s') => {
   }
 };
 
-contract('UniswapScheme', (accounts) => {
+contract('UniswapProxy', (accounts) => {
   let setup;
   before('!! deploy setup', async () => {
     setup = await deploy(accounts);
@@ -201,7 +201,7 @@ contract('UniswapScheme', (accounts) => {
         });
       });
 
-      context('> swap is not triggered by avatar', () => {
+      context('» swap is not triggered by avatar', () => {
         it('it reverts', async () => {
           await expectRevert(setup.proxy.swap(constants.ZERO_ADDRESS, setup.tokens.erc20s[0].address, AMOUNT, EXPECTED), 'UniswapProxy: protected function');
         });

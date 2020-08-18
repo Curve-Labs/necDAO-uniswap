@@ -53,7 +53,7 @@ const initialize = async (root) => {
 
 const tokens = async (setup) => {
   const weth = await WETH.new();
-  const erc20s = [await ERC20.new(setup.root, INITIAL_CASH_SUPPLY), await ERC20.new(setup.root, INITIAL_CASH_SUPPLY)];
+  const erc20s = [await ERC20.new('DAI Stablecoin', 'DAI', 18), await ERC20.new('USDC Stablecoin', 'USDC', 15)];
   await weth.deposit({ value: INITIAL_CASH_BALANCE });
 
   return { weth, erc20s };
@@ -97,9 +97,9 @@ const uniswap = async (setup) => {
 };
 
 const DAOStack = async () => {
-  const controllerCreator = await ControllerCreator.new({ gas: ARC_GAS_LIMIT });
-  const daoTracker = await DAOTracker.new({ gas: ARC_GAS_LIMIT });
-  const daoCreator = await DaoCreator.new(controllerCreator.address, daoTracker.address, { gas: ARC_GAS_LIMIT });
+  const controllerCreator = await ControllerCreator.new();
+  const daoTracker = await DAOTracker.new();
+  const daoCreator = await DaoCreator.new(controllerCreator.address, daoTracker.address);
 
   return { controllerCreator, daoTracker, daoCreator };
 };

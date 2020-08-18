@@ -3,9 +3,15 @@ pragma solidity ^0.5.13;
 import "openzeppelin-solidity/contracts/token/ERC20/ERC20.sol";
 
 
-// mock class using ERC20
 contract ERC20Mock is ERC20 {
-  constructor(address initialAccount, uint256 initialBalance) public {
-    _mint(initialAccount, initialBalance);
+  string public name;
+  string public symbol;
+  uint8  public decimals;
+
+  constructor(string memory _name, string memory _symbol, uint8 _decimals) public {
+    name = _name;
+    symbol = _symbol;
+    decimals = _decimals;
+    _mint(msg.sender, uint256(10000000000000000000000));
   }
 }

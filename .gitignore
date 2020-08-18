@@ -19,8 +19,10 @@ packages/contracts/scripts/deployed.json
 
 # coverage
 */**/coverage
-*/**/coverageEnv
 */**/coverage.json
+*/**/coverage_artifacts
+*/**/coverage_cache
+*/**/coverage_contracts
 */**/allFiredEvents
 */**/scTopics
 

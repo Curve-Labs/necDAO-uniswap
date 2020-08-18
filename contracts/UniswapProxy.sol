@@ -2,8 +2,8 @@ pragma solidity >=0.5.13;
 
 import "@daostack/arc/contracts/controller/Avatar.sol";
 import "@daostack/arc/contracts/controller/Controller.sol";
-import "openzeppelin-solidity/contracts/token/ERC20/ERC20.sol";
-import './uniswap/IUniswapV2Router02.sol';
+import "openzeppelin-solidity/contracts/token/ERC20/IERC20.sol";
+import './interfaces/IUniswapV2Router02.sol';
 
 /**
  * @title A UniswapV2 proxy made with ❤️ for the necDAO folks
@@ -66,7 +66,7 @@ contract UniswapProxy {
       path[0] = _from;
       path[1] = _to;
       // swap
-      (success, returned) = controller.genericCall(_from, abi.encodeWithSelector(ERC20(_from).approve.selector, address(router), _amount), avatar, 0);
+      (success, returned) = controller.genericCall(_from, abi.encodeWithSelector(IERC20(_from).approve.selector, address(router), _amount), avatar, 0);
       require(success, 'UniswapProxy: ERC20 approval failed before swap');
       (success, returned) = controller.genericCall(address(router), abi.encodeWithSelector(router.swapExactTokensForTokens.selector, _amount, _expected, path, avatar, block.timestamp), avatar, 0);
       require(success, 'UniswapProxy: swap failed');

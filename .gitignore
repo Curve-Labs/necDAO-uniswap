@@ -3,30 +3,21 @@ lerna-debug.log
 
 # dependencies
 node_modules
-**/*/node_modules
 
 # lock
 package-lock.json
-**/*/package-lock.json
 
-# truffle
-# **/*/build/
-**/*/artifacts
-**/*/cache
-
-# cache data
-packages/contracts/scripts/deployed.json
+# buidler
+artifacts
+cache
 
 # coverage
-*/**/coverage
-*/**/coverage.json
-*/**/coverage_artifacts
-*/**/coverage_cache
-*/**/coverage_contracts
-*/**/allFiredEvents
-*/**/scTopics
+coverage
+coverage.json
+coverage_artifacts
+coverage_cache
+coverage_contracts
 
 # macOS shit
 .DS_Store
-*/**/.DS_Store
 

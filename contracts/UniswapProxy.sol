@@ -24,7 +24,7 @@ contract UniswapProxy {
 
     modifier protected () {
         require(initialized,                   "UniswapProxy: proxy not initialized");
-        require(msg.sender == address(avatar), "UniswapProxy: protected function");
+        require(msg.sender == address(avatar), "UniswapProxy: protected operation");
         _;
     }
 
@@ -100,6 +100,13 @@ contract UniswapProxy {
         } else if (_to == address(0)) {
             path[0] = _from;
             path[1] = router.WETH();
+            (success, returned) = controller.genericCall(
+                _from,
+                abi.encodeWithSelector(IERC20(_from).approve.selector, address(router), _amount),
+                avatar,
+                0
+            );
+            require(success, 'UniswapProxy: ERC20 approval failed');
             (success, returned) = controller.genericCall(
                 address(router),
                 abi.encodeWithSelector(

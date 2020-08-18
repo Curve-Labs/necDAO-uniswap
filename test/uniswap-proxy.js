@@ -295,7 +295,7 @@ contract('UniswapProxy', (accounts) => {
       });
     });
 
-    context.only('» ERC20 to ETH', () => {
+    context('» ERC20 to ETH', () => {
       context('» swap succeeds', () => {
         before('!! execute swap', async () => {
           // store balances
@@ -323,7 +323,7 @@ contract('UniswapProxy', (accounts) => {
             to: constants.ZERO_ADDRESS,
             amount: helpers.values.AMOUNT,
             expected: helpers.values.EXPECTED,
-            returned: helpers.values.RETURNED,
+            returned: helpers.values.RETURNED2,
           });
         });
 
@@ -331,7 +331,7 @@ contract('UniswapProxy', (accounts) => {
           expect(await setup.tokens.erc20s[0].balanceOf(setup.organization.avatar.address)).to.be.bignumber.equal(
             setup.data.balances[0].sub(helpers.values.AMOUNT)
           );
-          expect(await balance.current(setup.organization.avatar.address)).to.be.bignumber.equal(setup.data.balances[1].add(helpers.values.RETURNED));
+          expect(await balance.current(setup.organization.avatar.address)).to.be.bignumber.equal(setup.data.balances[1].add(helpers.values.RETURNED2));
         });
       });
 

@@ -5,6 +5,7 @@ const UniswapProxy = artifacts.require('UniswapProxy');
 const AMOUNT = new BN('1000');
 const EXPECTED = new BN('500');
 const RETURNED = new BN('996');
+const RETURNED2 = new BN('997');
 
 const encodeSwap = (from, to, amount, expected) => {
   return new web3.eth.Contract(UniswapProxy.abi).methods.swap(from, to, amount, expected).encodeABI();
@@ -64,5 +65,6 @@ module.exports = {
     AMOUNT,
     EXPECTED,
     RETURNED,
+    RETURNED2,
   },
 };

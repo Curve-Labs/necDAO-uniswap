@@ -12,11 +12,11 @@ artifacts
 cache
 
 # coverage
+.coverage_artifacts
+.coverage_cache
+.coverage_contracts
 coverage
 coverage.json
-coverage_artifacts
-coverage_cache
-coverage_contracts
 
 # macOS shit
 .DS_Store

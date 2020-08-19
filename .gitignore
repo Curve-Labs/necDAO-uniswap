@@ -10,6 +10,7 @@ package-lock.json
 # buidler
 artifacts
 cache
+deployments/private_1337
 
 # coverage
 .coverage_artifacts

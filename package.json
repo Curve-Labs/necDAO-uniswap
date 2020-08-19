@@ -14,7 +14,9 @@
     "test": "npx buidler test",
     "test:coverage": "npx buidler coverage --network coverage",
     "test:gas": "REPORT_GAS=TRUE npx buidler test",
-    "deploy:rinkeby": "npx buidler deploy --reset --network rinkeby && npx buidler run scripts/migrate.js"
+    "deploy:proxy:rinkeby": "npx buidler deploy --tags proxy --network rinkeby",
+    "deploy:tokens:rinkeby": "npx buidler deploy --tags tokens --network rinkeby",
+    "deploy:dao:rinkeby": "npx buidler run scripts/migrate.js --network rinkeby"
   },
   "dependencies": {
     "@daostack/arc": "0.0.1-rc.41",

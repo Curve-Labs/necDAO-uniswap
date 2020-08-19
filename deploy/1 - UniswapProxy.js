@@ -5,6 +5,9 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
   const proxy = await deploy('UniswapProxy', {
     contract: 'UniswapProxy',
     from: deployer,
+    proxy: true,
   });
   log('+ Deployed UniswapProxy at ' + proxy.address);
 };
+
+module.exports.tags = ['proxy'];

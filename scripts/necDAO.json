@@ -3,8 +3,8 @@
   "tokenName": "Nectar",
   "tokenSymbol": "NEC",
   "ContributionReward": [{ "voteParams": 0 }],
-  "SchemeRegistrar": [{ "voteRegisterParams": 1, "voteRemoveParams": 1 }],
-  "UpgradeScheme": [{ "voteParams": 1 }],
+  "SchemeRegistrar": [{ "voteRegisterParams": 0, "voteRemoveParams": 0 }],
+  "UpgradeScheme": [{ "voteParams": 0 }],
   "StandAloneContracts": [],
   "CustomSchemes": [
     {
@@ -19,7 +19,7 @@
       "name": "GenericScheme",
       "schemeName": "GenericScheme",
       "isUniversal": false,
-      "params": ["GenesisProtocolAddress", { "voteParams": 1 }, ""],
+      "params": ["GenesisProtocolAddress", { "voteParams": 0 }, ""],
       "permissions": "0x00000010",
       "alias": "GenericSchemeUniswap",
       "fromArc": true
@@ -28,24 +28,10 @@
   "VotingMachinesParams": [
     {
       "activationTime": 0,
-      "boostedVotePeriodLimit": 345600,
+      "boostedVotePeriodLimit": 604800,
       "daoBountyConst": 10,
-      "minimumDaoBounty": 150,
+      "minimumDaoBounty": 100,
       "preBoostedVotePeriodLimit": 86400,
-      "proposingRepReward": 0,
-      "queuedVotePeriodLimit": 2592000,
-      "queuedVoteRequiredPercentage": 50,
-      "quietEndingPeriod": 172800,
-      "thresholdConst": 1200,
-      "voteOnBehalf": "0x0000000000000000000000000000000000000000",
-      "votersReputationLossRatio": 0
-    },
-    {
-      "activationTime": 0,
-      "boostedVotePeriodLimit": 691200,
-      "daoBountyConst": 10,
-      "minimumDaoBounty": 500,
-      "preBoostedVotePeriodLimit": 172800,
       "proposingRepReward": 0,
       "queuedVotePeriodLimit": 5184000,
       "queuedVoteRequiredPercentage": 50,
@@ -55,9 +41,9 @@
       "votersReputationLossRatio": 0
     }
   ],
-  "schemes": { "ContributionReward": true, "GenericScheme": false, "SchemeRegistrar": true, "GlobalConstraintRegistrar": false, "UpgradeScheme": true },
+  "schemes": { "ContributionReward": true, "GenericScheme": true, "SchemeRegistrar": true, "GlobalConstraintRegistrar": true, "UpgradeScheme": true },
   "unregisterOwner": true,
   "useUController": false,
   "useDaoCreator": true,
-  "founders": [{ "address": "0x90F8bf6A479f320ead074411a4B0e7944Ea8c9C1", "tokens": 100, "reputation": 100 }]
+  "founders": [{ "address": "0xb71D2D88030A00830C3D45f84C12cc8aAF6857a5", "tokens": 100, "reputation": 100 }]
 }

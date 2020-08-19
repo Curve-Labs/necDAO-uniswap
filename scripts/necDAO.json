@@ -41,7 +41,7 @@
       "votersReputationLossRatio": 0
     }
   ],
-  "schemes": { "ContributionReward": true, "GenericScheme": true, "SchemeRegistrar": true, "GlobalConstraintRegistrar": true, "UpgradeScheme": true },
+  "schemes": { "ContributionReward": true, "GenericScheme": true, "SchemeRegistrar": true, "GlobalConstraintRegistrar": false, "UpgradeScheme": true },
   "unregisterOwner": true,
   "useUController": false,
   "useDaoCreator": true,

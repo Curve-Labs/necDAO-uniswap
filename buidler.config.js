@@ -1,6 +1,7 @@
 usePlugin('@nomiclabs/buidler-solhint');
 usePlugin('@nomiclabs/buidler-truffle5');
 usePlugin('buidler-deploy');
+usePlugin('@nomiclabs/buidler-etherscan');
 usePlugin('buidler-gas-reporter');
 usePlugin('solidity-coverage');
 
@@ -8,6 +9,14 @@ module.exports = {
   solc: {
     version: '0.5.13',
     optimizer: { enabled: true, runs: 1 },
+  },
+  etherscan: {
+    // The url for the Etherscan API you want to use.
+    // For example, here we're using the one for the Ropsten test network
+    url: 'https://api-rinkeby.etherscan.io/api',
+    // Your API key for Etherscan
+    // Obtain one at https://etherscan.io/
+    apiKey: 'ZXW2Y7U3665YIGZZZUEFK3B59NWIK6X3DR',
   },
   gasReporter: {
     enabled: process.env.REPORT_GAS ? true : false,

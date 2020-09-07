@@ -13,9 +13,12 @@ import './interfaces/IUniswapV2Router02.sol';
 contract UniswapProxy {
     using SafeMath for uint256;
 
-    uint256 constant PPM          = 1000000; // 100% = 1000000 | 50% = 500000 | 0% = 0
-    string  constant ERROR_PAIR   = "UniswapProxy: invalid pair";
-    string  constant ERROR_AMOUNT = "UniswapProxy: invalid amount";
+    uint256 constant PPM            = 1000000; // 100% = 1000000 | 50% = 500000 | 0% = 0
+    string  constant ERROR_PAIR     = "UniswapProxy: invalid pair";
+    string  constant ERROR_AMOUNT   = "UniswapProxy: invalid amount";
+    string  constant ERROR_APPROVAL = "UniswapProxy: ERC20 approval failed";
+    string  constant ERROR_SWAP     = "UniswapProxy: swap failed";
+    string  constant ERROR_POOL     = "UniswapProxy: pool failed";
 
     bool               public   initialized;
     Avatar             public   avatar;
@@ -96,7 +99,7 @@ contract UniswapProxy {
                 avatar,
                 0
             );
-            require(success, 'UniswapProxy: ERC20 approval failed');
+            require(success, ERROR_APPROVAL);
             (success, returned) = controller.genericCall(
                 address(router),
                 abi.encodeWithSelector(
@@ -110,7 +113,7 @@ contract UniswapProxy {
                 avatar,
                 0
             );
-            require(success, 'UniswapProxy: swap failed');
+            require(success, ERROR_SWAP);
         } else if (_from == address(0)) {
             path[0] = router.WETH();
             path[1] = _to;
@@ -120,7 +123,7 @@ contract UniswapProxy {
                 avatar,
                 _amount
             );
-            require(success, 'UniswapProxy: swap failed');
+            require(success, ERROR_SWAP);
         } else if (_to == address(0)) {
             path[0] = _from;
             path[1] = router.WETH();
@@ -130,7 +133,7 @@ contract UniswapProxy {
                 avatar,
                 0
             );
-            require(success, 'UniswapProxy: ERC20 approval failed');
+            require(success, ERROR_APPROVAL);
             (success, returned) = controller.genericCall(
                 address(router),
                 abi.encodeWithSelector(
@@ -144,7 +147,7 @@ contract UniswapProxy {
                 avatar,
                 0
             );
-            require(success, 'UniswapProxy: swap failed');
+            require(success, ERROR_SWAP);
         }
 
         emit Swap(_from, _to, _amount, _expected, _parseSwapReturn(returned));
@@ -165,14 +168,14 @@ contract UniswapProxy {
                 avatar,
                 0
             );
-            require(success, 'UniswapProxy: ERC20 approval failed');
+            require(success, ERROR_APPROVAL);
             (success, returned) = controller.genericCall(
                 _token2,
                 abi.encodeWithSelector(IERC20(_token2).approve.selector, address(router), _amount2),
                 avatar,
                 0
             );
-            require(success, 'UniswapProxy: ERC20 approval failed');
+            require(success, ERROR_APPROVAL);
             (success, returned) = controller.genericCall(
                 address(router),
                 abi.encodeWithSelector(
@@ -189,7 +192,36 @@ contract UniswapProxy {
                 avatar,
                 0
             );
-            require(success, 'UniswapProxy: pool failed');
+            require(success, ERROR_POOL);
+        } else {
+          address token  = _token1 == address(0) ? _token2 : _token1;
+          uint256 amount = _token1 == address(0) ? _amount2 : _amount1;
+          uint256 value  = _token1 == address(0) ? _amount1 : _amount2;
+
+          (success, returned) = controller.genericCall(
+              token,
+              abi.encodeWithSelector(IERC20(token).approve.selector, address(router), amount),
+              avatar,
+              0
+          );
+          require(success, ERROR_APPROVAL);
+          (success, returned) = controller.genericCall(
+              address(router),
+              abi.encodeWithSelector(
+                  router.addLiquidityETH.selector,
+                  token,
+                  _token2,
+                  _amount1,
+                  _amount2,
+                  min1,
+                  min2,
+                  avatar,
+                  block.timestamp
+              ),
+              avatar,
+              value
+          );
+          require(success, ERROR_POOL);
         }
 
         (uint256 pooled1, uint256 pooled2, uint256 liquidity) = _parsePoolReturn(returned);

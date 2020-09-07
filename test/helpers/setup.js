@@ -93,7 +93,9 @@ const uniswap = async (setup) => {
     timestamp + 10000000
   );
 
-  return { factory, router };
+  const liquidityTokenERC20s = await ERC20.at(await factory.getPair(setup.tokens.erc20s[0].address, setup.tokens.erc20s[1].address));
+
+  return { factory, router, liquidityTokenERC20s };
 };
 
 const DAOStack = async () => {

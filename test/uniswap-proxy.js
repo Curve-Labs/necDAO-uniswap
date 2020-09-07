@@ -24,11 +24,12 @@ const deploy = async (accounts) => {
 
 contract('UniswapProxy', (accounts) => {
   let setup;
-  before('!! deploy setup', async () => {
-    setup = await deploy(accounts);
-  });
 
   context('# initialize', () => {
+    before('!! deploy setup', async () => {
+      setup = await deploy(accounts);
+    });
+
     context('» proxy is not initialized yet', () => {
       context('» parameters are valid', () => {
         // proxy has already been initialized during setup
@@ -70,6 +71,10 @@ contract('UniswapProxy', (accounts) => {
 
   context('# swap', () => {
     context('» generics', () => {
+      before('!! deploy setup', async () => {
+        setup = await deploy(accounts);
+      });
+
       context('» proxy is not initialized', () => {
         before('!! deploy proxy', async () => {
           setup.data.proxy = await UniswapProxy.new();
@@ -77,12 +82,7 @@ contract('UniswapProxy', (accounts) => {
 
         it('it reverts', async () => {
           await expectRevert(
-            setup.data.proxy.swap(
-              setup.tokens.erc20s[0].address,
-              setup.tokens.erc20s[1].address,
-              helpers.values.AMOUNT.toString(),
-              helpers.values.EXPECTED.toString()
-            ),
+            setup.data.proxy.swap(setup.tokens.erc20s[0].address, setup.tokens.erc20s[1].address, helpers.values.swap.AMOUNT, helpers.values.swap.EXPECTED),
             'UniswapProxy: proxy not initialized'
           );
         });
@@ -96,27 +96,8 @@ contract('UniswapProxy', (accounts) => {
 
         it('it reverts', async () => {
           await expectRevert(
-            setup.data.proxy.swap(
-              setup.tokens.erc20s[0].address,
-              setup.tokens.erc20s[1].address,
-              helpers.values.AMOUNT.toString(),
-              helpers.values.EXPECTED.toString()
-            ),
+            setup.data.proxy.swap(setup.tokens.erc20s[0].address, setup.tokens.erc20s[1].address, helpers.values.swap.AMOUNT, helpers.values.swap.EXPECTED),
             'UniswapProxy: protected operation'
-          );
-        });
-      });
-
-      context('» swap amount is invalid', () => {
-        before('!! deploy and initialize proxy', async () => {
-          setup.data.proxy = await UniswapProxy.new();
-          await setup.data.proxy.initialize(accounts[0], setup.uniswap.router.address);
-        });
-
-        it('it reverts', async () => {
-          await expectRevert(
-            setup.data.proxy.swap(setup.tokens.erc20s[0].address, setup.tokens.erc20s[1].address, 0, helpers.values.EXPECTED.toString()),
-            'UniswapProxy: invalid swap amount'
           );
         });
       });
@@ -129,19 +110,32 @@ contract('UniswapProxy', (accounts) => {
 
         it('it reverts', async () => {
           await expectRevert(
-            setup.data.proxy.swap(
-              setup.tokens.erc20s[0].address,
-              setup.tokens.erc20s[0].address,
-              helpers.values.AMOUNT.toString(),
-              helpers.values.EXPECTED.toString()
-            ),
+            setup.data.proxy.swap(setup.tokens.erc20s[0].address, setup.tokens.erc20s[0].address, helpers.values.swap.AMOUNT, helpers.values.swap.EXPECTED),
             'UniswapProxy: invalid swap pair'
+          );
+        });
+      });
+
+      context('» swap amount is invalid', () => {
+        before('!! deploy and initialize proxy', async () => {
+          setup.data.proxy = await UniswapProxy.new();
+          await setup.data.proxy.initialize(accounts[0], setup.uniswap.router.address);
+        });
+
+        it('it reverts', async () => {
+          await expectRevert(
+            setup.data.proxy.swap(setup.tokens.erc20s[0].address, setup.tokens.erc20s[1].address, 0, helpers.values.swap.EXPECTED),
+            'UniswapProxy: invalid swap amount'
           );
         });
       });
     });
 
     context('» ERC20 to ERC20', () => {
+      before('!! deploy setup', async () => {
+        setup = await deploy(accounts);
+      });
+
       context('» swap succeeds', () => {
         before('!! execute swap', async () => {
           // store balances
@@ -151,8 +145,8 @@ contract('UniswapProxy', (accounts) => {
           const calldata = helpers.encodeSwap(
             setup.tokens.erc20s[0].address,
             setup.tokens.erc20s[1].address,
-            helpers.values.AMOUNT.toString(),
-            helpers.values.EXPECTED.toString()
+            helpers.values.swap.AMOUNT,
+            helpers.values.swap.EXPECTED
           );
           const _tx = await setup.scheme.proposeCall(calldata, 0, constants.ZERO_BYTES32);
           const proposalId = helpers.getNewProposalId(_tx);
@@ -167,18 +161,18 @@ contract('UniswapProxy', (accounts) => {
           await expectEvent.inTransaction(setup.data.tx.tx, setup.proxy, 'Swap', {
             from: setup.tokens.erc20s[0].address,
             to: setup.tokens.erc20s[1].address,
-            amount: helpers.values.AMOUNT,
-            expected: helpers.values.EXPECTED,
-            returned: helpers.values.RETURNED,
+            amount: helpers.values.swap.AMOUNT,
+            expected: helpers.values.swap.EXPECTED,
+            returned: helpers.values.swap.RETURNED,
           });
         });
 
         it('it swaps tokens', async () => {
           expect(await setup.tokens.erc20s[0].balanceOf(setup.organization.avatar.address)).to.be.bignumber.equal(
-            setup.data.balances[0].sub(helpers.values.AMOUNT)
+            setup.data.balances[0].sub(helpers.values.swap.AMOUNT)
           );
           expect(await setup.tokens.erc20s[1].balanceOf(setup.organization.avatar.address)).to.be.bignumber.equal(
-            setup.data.balances[1].add(helpers.values.RETURNED)
+            setup.data.balances[1].add(helpers.values.swap.RETURNED)
           );
         });
       });
@@ -192,8 +186,8 @@ contract('UniswapProxy', (accounts) => {
           const calldata = helpers.encodeSwap(
             setup.tokens.erc20s[0].address,
             setup.tokens.erc20s[1].address,
-            helpers.values.AMOUNT.toString(),
-            helpers.values.AMOUNT.toString()
+            helpers.values.swap.AMOUNT,
+            helpers.values.swap.AMOUNT
           );
           const _tx = await setup.scheme.proposeCall(calldata, 0, constants.ZERO_BYTES32);
           const proposalId = helpers.getNewProposalId(_tx);
@@ -220,18 +214,17 @@ contract('UniswapProxy', (accounts) => {
     });
 
     context('» ETH to ERC20', () => {
+      before('!! deploy setup', async () => {
+        setup = await deploy(accounts);
+      });
+
       context('» swap succeeds', () => {
         before('!! execute swap', async () => {
           // store balances
           setup.data.balances[0] = await balance.current(setup.organization.avatar.address);
           setup.data.balances[1] = await setup.tokens.erc20s[0].balanceOf(setup.organization.avatar.address);
           // execute swap
-          const calldata = helpers.encodeSwap(
-            constants.ZERO_ADDRESS,
-            setup.tokens.erc20s[0].address,
-            helpers.values.AMOUNT.toString(),
-            helpers.values.EXPECTED.toString()
-          );
+          const calldata = helpers.encodeSwap(constants.ZERO_ADDRESS, setup.tokens.erc20s[0].address, helpers.values.swap.AMOUNT, helpers.values.swap.EXPECTED);
           const _tx = await setup.scheme.proposeCall(calldata, 0, constants.ZERO_BYTES32);
           const proposalId = helpers.getNewProposalId(_tx);
           const tx = await setup.scheme.voting.absoluteVote.vote(proposalId, 1, 0, constants.ZERO_ADDRESS);
@@ -245,16 +238,16 @@ contract('UniswapProxy', (accounts) => {
           await expectEvent.inTransaction(setup.data.tx.tx, setup.proxy, 'Swap', {
             from: constants.ZERO_ADDRESS,
             to: setup.tokens.erc20s[0].address,
-            amount: helpers.values.AMOUNT,
-            expected: helpers.values.EXPECTED,
-            returned: helpers.values.RETURNED,
+            amount: helpers.values.swap.AMOUNT,
+            expected: helpers.values.swap.EXPECTED,
+            returned: helpers.values.swap.RETURNED,
           });
         });
 
         it('it swaps tokens', async () => {
-          expect(await balance.current(setup.organization.avatar.address)).to.be.bignumber.equal(setup.data.balances[0].sub(helpers.values.AMOUNT));
+          expect(await balance.current(setup.organization.avatar.address)).to.be.bignumber.equal(setup.data.balances[0].sub(helpers.values.swap.AMOUNT));
           expect(await setup.tokens.erc20s[0].balanceOf(setup.organization.avatar.address)).to.be.bignumber.equal(
-            setup.data.balances[1].add(helpers.values.RETURNED)
+            setup.data.balances[1].add(helpers.values.swap.RETURNED)
           );
         });
       });
@@ -265,12 +258,7 @@ contract('UniswapProxy', (accounts) => {
           setup.data.balances[0] = new BN(await web3.eth.getBalance(setup.organization.avatar.address));
           setup.data.balances[1] = await setup.tokens.erc20s[0].balanceOf(setup.organization.avatar.address);
           // execute failing swap
-          const calldata = helpers.encodeSwap(
-            constants.ZERO_ADDRESS,
-            setup.tokens.erc20s[0].address,
-            helpers.values.AMOUNT.toString(),
-            helpers.values.AMOUNT.toString()
-          );
+          const calldata = helpers.encodeSwap(constants.ZERO_ADDRESS, setup.tokens.erc20s[0].address, helpers.values.swap.AMOUNT, helpers.values.swap.AMOUNT);
           const _tx = await setup.scheme.proposeCall(calldata, 0, constants.ZERO_BYTES32);
           const proposalId = helpers.getNewProposalId(_tx);
           const tx = await setup.scheme.voting.absoluteVote.vote(proposalId, 1, 0, constants.ZERO_ADDRESS);
@@ -296,18 +284,17 @@ contract('UniswapProxy', (accounts) => {
     });
 
     context('» ERC20 to ETH', () => {
+      before('!! deploy setup', async () => {
+        setup = await deploy(accounts);
+      });
+
       context('» swap succeeds', () => {
         before('!! execute swap', async () => {
           // store balances
           setup.data.balances[0] = await setup.tokens.erc20s[0].balanceOf(setup.organization.avatar.address);
           setup.data.balances[1] = await balance.current(setup.organization.avatar.address);
           // execute swap
-          const calldata = helpers.encodeSwap(
-            setup.tokens.erc20s[0].address,
-            constants.ZERO_ADDRESS,
-            helpers.values.AMOUNT.toString(),
-            helpers.values.EXPECTED.toString()
-          );
+          const calldata = helpers.encodeSwap(setup.tokens.erc20s[0].address, constants.ZERO_ADDRESS, helpers.values.swap.AMOUNT, helpers.values.swap.EXPECTED);
           const _tx = await setup.scheme.proposeCall(calldata, 0, constants.ZERO_BYTES32);
           const proposalId = helpers.getNewProposalId(_tx);
           const tx = await setup.scheme.voting.absoluteVote.vote(proposalId, 1, 0, constants.ZERO_ADDRESS);
@@ -321,17 +308,17 @@ contract('UniswapProxy', (accounts) => {
           await expectEvent.inTransaction(setup.data.tx.tx, setup.proxy, 'Swap', {
             from: setup.tokens.erc20s[0].address,
             to: constants.ZERO_ADDRESS,
-            amount: helpers.values.AMOUNT,
-            expected: helpers.values.EXPECTED,
-            returned: helpers.values.RETURNED2,
+            amount: helpers.values.swap.AMOUNT,
+            expected: helpers.values.swap.EXPECTED,
+            returned: helpers.values.swap.RETURNED,
           });
         });
 
         it('it swaps tokens', async () => {
           expect(await setup.tokens.erc20s[0].balanceOf(setup.organization.avatar.address)).to.be.bignumber.equal(
-            setup.data.balances[0].sub(helpers.values.AMOUNT)
+            setup.data.balances[0].sub(helpers.values.swap.AMOUNT)
           );
-          expect(await balance.current(setup.organization.avatar.address)).to.be.bignumber.equal(setup.data.balances[1].add(helpers.values.RETURNED2));
+          expect(await balance.current(setup.organization.avatar.address)).to.be.bignumber.equal(setup.data.balances[1].add(helpers.values.swap.RETURNED));
         });
       });
 
@@ -341,12 +328,7 @@ contract('UniswapProxy', (accounts) => {
           setup.data.balances[0] = await setup.tokens.erc20s[0].balanceOf(setup.organization.avatar.address);
           setup.data.balances[1] = await balance.current(setup.organization.avatar.address);
           // execute swap
-          const calldata = helpers.encodeSwap(
-            setup.tokens.erc20s[0].address,
-            constants.ZERO_ADDRESS,
-            helpers.values.AMOUNT.toString(),
-            helpers.values.AMOUNT.toString()
-          );
+          const calldata = helpers.encodeSwap(setup.tokens.erc20s[0].address, constants.ZERO_ADDRESS, helpers.values.swap.AMOUNT, helpers.values.swap.AMOUNT);
           const _tx = await setup.scheme.proposeCall(calldata, 0, constants.ZERO_BYTES32);
           const proposalId = helpers.getNewProposalId(_tx);
           const tx = await setup.scheme.voting.absoluteVote.vote(proposalId, 1, 0, constants.ZERO_ADDRESS);
@@ -367,6 +349,213 @@ contract('UniswapProxy', (accounts) => {
         it('it maintains balances', async () => {
           expect(await setup.tokens.erc20s[0].balanceOf(setup.organization.avatar.address)).to.be.bignumber.equal(setup.data.balances[0]);
           expect(await balance.current(setup.organization.avatar.address)).to.be.bignumber.equal(setup.data.balances[1]);
+        });
+      });
+    });
+  });
+
+  context('# pool', () => {
+    context('» generics', () => {
+      before('!! deploy setup', async () => {
+        setup = await deploy(accounts);
+      });
+
+      context('» proxy is not initialized', () => {
+        before('!! deploy proxy', async () => {
+          setup.data.proxy = await UniswapProxy.new();
+        });
+
+        it('it reverts', async () => {
+          await expectRevert(
+            setup.data.proxy.pool(
+              setup.tokens.erc20s[0].address,
+              setup.tokens.erc20s[1].address,
+              helpers.values.pool.AMOUNT,
+              helpers.values.pool.AMOUNT,
+              helpers.values.pool.SLIPPAGE
+            ),
+            'UniswapProxy: proxy not initialized'
+          );
+        });
+      });
+
+      context('» pool is not triggered by avatar', () => {
+        before('!! deploy and initialize proxy', async () => {
+          setup.data.proxy = await UniswapProxy.new();
+          await setup.data.proxy.initialize(setup.organization.avatar.address, setup.uniswap.router.address);
+        });
+
+        it('it reverts', async () => {
+          await expectRevert(
+            setup.data.proxy.pool(
+              setup.tokens.erc20s[0].address,
+              setup.tokens.erc20s[1].address,
+              helpers.values.pool.AMOUNT,
+              helpers.values.pool.AMOUNT,
+              helpers.values.pool.SLIPPAGE
+            ),
+            'UniswapProxy: protected operation'
+          );
+        });
+      });
+
+      context('» token pair is invalid', () => {
+        before('!! deploy and initialize proxy', async () => {
+          setup.data.proxy = await UniswapProxy.new();
+          await setup.data.proxy.initialize(accounts[0], setup.uniswap.router.address);
+        });
+
+        it('it reverts', async () => {
+          await expectRevert(
+            setup.data.proxy.pool(
+              setup.tokens.erc20s[0].address,
+              setup.tokens.erc20s[0].address,
+              helpers.values.pool.AMOUNT,
+              helpers.values.pool.AMOUNT,
+              helpers.values.pool.SLIPPAGE
+            ),
+            'UniswapProxy: invalid pool pair'
+          );
+        });
+      });
+
+      context('» pool amount is invalid', () => {
+        before('!! deploy and initialize proxy', async () => {
+          setup.data.proxy = await UniswapProxy.new();
+          await setup.data.proxy.initialize(accounts[0], setup.uniswap.router.address);
+        });
+
+        it('it reverts', async () => {
+          await expectRevert(
+            setup.data.proxy.pool(setup.tokens.erc20s[0].address, setup.tokens.erc20s[1].address, 0, 0, helpers.values.pool.SLIPPAGE),
+            'UniswapProxy: invalid pool amount'
+          );
+        });
+      });
+
+      context('» slippage is invalid', () => {
+        before('!! deploy and initialize proxy', async () => {
+          setup.data.proxy = await UniswapProxy.new();
+          await setup.data.proxy.initialize(accounts[0], setup.uniswap.router.address);
+        });
+
+        it('it reverts', async () => {
+          await expectRevert(
+            setup.data.proxy.pool(
+              setup.tokens.erc20s[0].address,
+              setup.tokens.erc20s[1].address,
+              helpers.values.pool.AMOUNT,
+              helpers.values.pool.AMOUNT,
+              helpers.values.PPM.add(new BN('1'))
+            ),
+            'UniswapProxy: invalid slippage'
+          );
+        });
+      });
+    });
+
+    context('» ERC20 to ERC20', () => {
+      before('!! deploy setup', async () => {
+        setup = await deploy(accounts);
+      });
+
+      before('!! execute swap [unbalance pool]', async () => {
+        const calldata = helpers.encodeSwap(
+          setup.tokens.erc20s[0].address,
+          setup.tokens.erc20s[1].address,
+          helpers.values.swap.AMOUNT,
+          helpers.values.swap.EXPECTED
+        );
+        const _tx = await setup.scheme.proposeCall(calldata, 0, constants.ZERO_BYTES32);
+        const proposalId = helpers.getNewProposalId(_tx);
+        await setup.scheme.voting.absoluteVote.vote(proposalId, 1, 0, constants.ZERO_ADDRESS);
+      });
+
+      context('» pool succeeds', () => {
+        before('!! execute pool', async () => {
+          // store balances
+          setup.data.balances[0] = await setup.tokens.erc20s[0].balanceOf(setup.organization.avatar.address);
+          setup.data.balances[1] = await setup.tokens.erc20s[1].balanceOf(setup.organization.avatar.address);
+          setup.data.balances[2] = await setup.uniswap.liquidityTokenERC20s.balanceOf(setup.organization.avatar.address);
+          // execute pool
+          const calldata = helpers.encodePool(
+            setup.tokens.erc20s[0].address,
+            setup.tokens.erc20s[1].address,
+            helpers.values.pool.AMOUNT,
+            helpers.values.pool.AMOUNT,
+            helpers.values.pool.SLIPPAGE
+          );
+          const _tx = await setup.scheme.proposeCall(calldata, 0, constants.ZERO_BYTES32);
+          const proposalId = helpers.getNewProposalId(_tx);
+          const tx = await setup.scheme.voting.absoluteVote.vote(proposalId, 1, 0, constants.ZERO_ADDRESS);
+          const proposal = await setup.scheme.organizationProposals(proposalId);
+          // store data
+          setup.data.tx = tx;
+          setup.data.proposal = proposal;
+        });
+
+        it('it emits a Pool event', async () => {
+          await expectEvent.inTransaction(setup.data.tx.tx, setup.proxy, 'Pool', {
+            token1: setup.tokens.erc20s[0].address,
+            token2: setup.tokens.erc20s[1].address,
+            amount1: helpers.values.pool.AMOUNT,
+            amount2: helpers.values.pool.AMOUNT,
+            min1: helpers.values.pool.MIN,
+            min2: helpers.values.pool.MIN,
+            pooled1: helpers.values.pool.POOLED1,
+            pooled2: helpers.values.pool.POOLED2,
+            liquidity: helpers.values.pool.LIQUIDITY,
+          });
+        });
+
+        it('it pool tokens', async () => {
+          expect(await setup.tokens.erc20s[0].balanceOf(setup.organization.avatar.address)).to.be.bignumber.equal(
+            setup.data.balances[0].sub(helpers.values.pool.POOLED1)
+          );
+          expect(await setup.tokens.erc20s[1].balanceOf(setup.organization.avatar.address)).to.be.bignumber.equal(
+            setup.data.balances[1].sub(helpers.values.pool.POOLED2)
+          );
+          expect(await setup.uniswap.liquidityTokenERC20s.balanceOf(setup.organization.avatar.address)).to.be.bignumber.equal(
+            setup.data.balances[2].add(helpers.values.pool.LIQUIDITY)
+          );
+        });
+      });
+
+      context('» pool fails [slippage exceeds allowed slippage]', () => {
+        before('!! execute swap', async () => {
+          // store balances
+          setup.data.balances[0] = await setup.tokens.erc20s[0].balanceOf(setup.organization.avatar.address);
+          setup.data.balances[1] = await setup.tokens.erc20s[1].balanceOf(setup.organization.avatar.address);
+          setup.data.balances[2] = await setup.uniswap.liquidityTokenERC20s.balanceOf(setup.organization.avatar.address);
+          // execute failing swap
+          const calldata = helpers.encodePool(
+            setup.tokens.erc20s[0].address,
+            setup.tokens.erc20s[1].address,
+            helpers.values.pool.AMOUNT.add(helpers.values.pool.AMOUNT),
+            helpers.values.pool.AMOUNT,
+            '0'
+          );
+          const _tx = await setup.scheme.proposeCall(calldata, 0, constants.ZERO_BYTES32);
+          const proposalId = helpers.getNewProposalId(_tx);
+          const tx = await setup.scheme.voting.absoluteVote.vote(proposalId, 1, 0, constants.ZERO_ADDRESS);
+          const proposal = await setup.scheme.organizationProposals(proposalId);
+          // store data
+          setup.data.tx = tx;
+          setup.data.proposal = proposal;
+        });
+
+        it('it keeps proposal live', async () => {
+          expect(setup.data.proposal.exist).to.equal(true);
+        });
+
+        it('it emits no Pool event', async () => {
+          await expectEvent.notEmitted.inTransaction(setup.data.tx.tx, setup.proxy, 'Pool');
+        });
+
+        it('it maintains balances', async () => {
+          expect(await setup.tokens.erc20s[0].balanceOf(setup.organization.avatar.address)).to.be.bignumber.equal(setup.data.balances[0]);
+          expect(await setup.tokens.erc20s[1].balanceOf(setup.organization.avatar.address)).to.be.bignumber.equal(setup.data.balances[1]);
+          expect(await setup.uniswap.liquidityTokenERC20s.balanceOf(setup.organization.avatar.address)).to.be.bignumber.equal(setup.data.balances[2]);
         });
       });
     });

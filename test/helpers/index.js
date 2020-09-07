@@ -2,14 +2,14 @@ const { BN } = require('@openzeppelin/test-helpers');
 const setup = require('./setup');
 const UniswapProxy = artifacts.require('UniswapProxy');
 
-const AMOUNT = new BN('1000');
-const EXPECTED = new BN('500');
-const RETURNED = new BN('996');
-const RETURNED2 = new BN('997');
-
 const encodeSwap = (from, to, amount, expected) => {
   return new web3.eth.Contract(UniswapProxy.abi).methods.swap(from, to, amount, expected).encodeABI();
 };
+
+const encodePool = (token1, token2, amount1, amount2, slippage) => {
+  return new web3.eth.Contract(UniswapProxy.abi).methods.pool(token1, token2, amount1, amount2, slippage).encodeABI();
+};
+
 const getValueFromLogs = (tx, arg, eventName, index = 0) => {
   /**
    *
@@ -60,11 +60,22 @@ const getNewProposalId = (tx) => {
 module.exports = {
   setup,
   encodeSwap,
+  encodePool,
   getNewProposalId,
   values: {
-    AMOUNT,
-    EXPECTED,
-    RETURNED,
-    RETURNED2,
+    PPM: new BN('1000000'),
+    swap: {
+      AMOUNT: new BN('1000'),
+      EXPECTED: new BN('500'),
+      RETURNED: new BN('996'),
+    },
+    pool: {
+      AMOUNT: new BN('1000'),
+      MIN: new BN('950'),
+      POOLED1: new BN('1000'),
+      POOLED2: new BN('999'),
+      LIQUIDITY: new BN('999'),
+      SLIPPAGE: new BN('50000'),
+    },
   },
 };

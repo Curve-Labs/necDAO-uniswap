@@ -2,6 +2,7 @@ pragma solidity >=0.5.13;
 
 import "@daostack/arc/contracts/controller/Avatar.sol";
 import "@daostack/arc/contracts/controller/Controller.sol";
+import "openzeppelin-solidity/contracts/math/SafeMath.sol";
 import "openzeppelin-solidity/contracts/token/ERC20/IERC20.sol";
 import './interfaces/IUniswapV2Router02.sol';
 
@@ -10,11 +11,15 @@ import './interfaces/IUniswapV2Router02.sol';
  * @dev   Enable necDAO to swap tokens and provide liquidity through UniswapV2 pairs.
  */
 contract UniswapProxy {
-    bool               public initialized;
-    Avatar             public avatar;
-    IUniswapV2Router02 public router;
+    using SafeMath for uint256;
+
+    bool               public   initialized;
+    Avatar             public   avatar;
+    IUniswapV2Router02 public   router;
+    uint256            constant PPM = 1000000;
 
     event Swap (address from, address to, uint256 amount, uint256 expected, uint256 returned);
+    event Pool (address token1, address token2, uint256 amount1, uint256 amount2, uint256 min1, uint256 min2, uint256 pooled1, uint256 pooled2, uint256 liquidity);
 
     modifier initializer() {
         require(!initialized, "UniswapProxy: proxy already initialized");
@@ -48,11 +53,27 @@ contract UniswapProxy {
       * @param _amount   The amount of `_from` token to swap.
       * @param _expected The minimum amount of `_to` token to expect in return for the swap [reverts otherwise].
       */
-    function swap(address _from, address _to, uint256 _amount, uint256 _expected) public protected {
-        require(_amount > 0,  "UniswapProxy: invalid swap amount");
+    function swap(address _from, address _to, uint256 _amount, uint256 _expected) external protected {
         require(_from != _to, "UniswapProxy: invalid swap pair");
+        require(_amount > 0,  "UniswapProxy: invalid swap amount");
 
         _swap(_from, _to, _amount, _expected);
+    }
+
+    /**
+      * @dev             Pool tokens.
+      * @param _token1   The address of the pair's first token to pool [address(0) for ETH].
+      * @param _token2   The address of the pair's second token to pool [address(0) for ETH].
+      * @param _amount1  The amount of `_token1` to pool.
+      * @param _amount2  The amount of `_token2` to pool.
+      * @param _slippage The allowed price slippage [reverts otherwise].
+      */
+    function pool(address _token1, address _token2, uint256 _amount1, uint256 _amount2, uint256 _slippage) external protected {
+        require(_token1 != _token2,            "UniswapProxy: invalid pool pair");
+        require(_amount1 > 0 && _amount2 > 0,  "UniswapProxy: invalid pool amount");
+        require(_slippage <= PPM,              "UniswapProxy: invalid slippage");
+
+        _pool(_token1, _token2, _amount1, _amount2, _slippage);
     }
 
     /* internal state-modifying functions */
@@ -126,9 +147,65 @@ contract UniswapProxy {
         emit Swap(_from, _to, _amount, _expected, _parseSwapReturn(returned));
     }
 
+    function _pool(address _token1, address _token2, uint256 _amount1, uint256 _amount2, uint256 _slippage) internal {
+        Controller       controller = Controller(avatar.owner());
+        bytes     memory returned;
+        bool             success;
+
+        uint256 min1 = _amount1.sub(_amount1.mul(_slippage).div(PPM));
+        uint256 min2 = _amount1.sub(_amount2.mul(_slippage).div(PPM));
+
+        if (_token1 != address(0) && _token2 != address(0)) {
+            (success, returned) = controller.genericCall(
+                _token1,
+                abi.encodeWithSelector(IERC20(_token1).approve.selector, address(router), _amount1),
+                avatar,
+                0
+            );
+            require(success, 'UniswapProxy: ERC20 approval failed');
+            (success, returned) = controller.genericCall(
+                _token2,
+                abi.encodeWithSelector(IERC20(_token2).approve.selector, address(router), _amount2),
+                avatar,
+                0
+            );
+            require(success, 'UniswapProxy: ERC20 approval failed');
+            (success, returned) = controller.genericCall(
+                address(router),
+                abi.encodeWithSelector(
+                    router.addLiquidity.selector,
+                    _token1,
+                    _token2,
+                    _amount1,
+                    _amount2,
+                    min1,
+                    min2,
+                    avatar,
+                    block.timestamp
+                ),
+                avatar,
+                0
+            );
+            require(success, 'UniswapProxy: pool failed');
+        }
+
+        (uint256 pooled1, uint256 pooled2, uint256 liquidity) = _parsePoolReturn(returned);
+        emit Pool(_token1, _token2, _amount1, _amount2, min1, min2, pooled1, pooled2, liquidity);
+    }
+
+    /* internal helpers */
+
     function _parseSwapReturn(bytes memory data) internal pure returns (uint256 amount) {
         assembly {
             amount := mload(add(data, 128))
+        }
+    }
+
+    function _parsePoolReturn(bytes memory data) internal pure returns (uint256 amount1, uint256 amount2, uint256 liquidity) {
+        assembly {
+            amount1 := mload(add(data, 32))
+            amount2 := mload(add(data, 64))
+            liquidity := mload(add(data, 96))
         }
     }
 }

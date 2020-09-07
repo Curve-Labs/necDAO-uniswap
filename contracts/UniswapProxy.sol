@@ -13,10 +13,13 @@ import './interfaces/IUniswapV2Router02.sol';
 contract UniswapProxy {
     using SafeMath for uint256;
 
+    uint256 constant PPM          = 1000000; // 100% = 1000000 | 50% = 500000 | 0% = 0
+    string  constant ERROR_PAIR   = "UniswapProxy: invalid pair";
+    string  constant ERROR_AMOUNT = "UniswapProxy: invalid amount";
+
     bool               public   initialized;
     Avatar             public   avatar;
     IUniswapV2Router02 public   router;
-    uint256            constant PPM = 1000000;
 
     event Swap (address from, address to, uint256 amount, uint256 expected, uint256 returned);
     event Pool (address token1, address token2, uint256 amount1, uint256 amount2, uint256 min1, uint256 min2, uint256 pooled1, uint256 pooled2, uint256 liquidity);
@@ -54,8 +57,8 @@ contract UniswapProxy {
       * @param _expected The minimum amount of `_to` token to expect in return for the swap [reverts otherwise].
       */
     function swap(address _from, address _to, uint256 _amount, uint256 _expected) external protected {
-        require(_from != _to, "UniswapProxy: invalid swap pair");
-        require(_amount > 0,  "UniswapProxy: invalid swap amount");
+        require(_from != _to, ERROR_PAIR);
+        require(_amount > 0,  ERROR_AMOUNT);
 
         _swap(_from, _to, _amount, _expected);
     }
@@ -69,8 +72,8 @@ contract UniswapProxy {
       * @param _slippage The allowed price slippage [reverts otherwise].
       */
     function pool(address _token1, address _token2, uint256 _amount1, uint256 _amount2, uint256 _slippage) external protected {
-        require(_token1 != _token2,            "UniswapProxy: invalid pool pair");
-        require(_amount1 > 0 && _amount2 > 0,  "UniswapProxy: invalid pool amount");
+        require(_token1 != _token2,            ERROR_PAIR);
+        require(_amount1 > 0 && _amount2 > 0,  ERROR_AMOUNT);
         require(_slippage <= PPM,              "UniswapProxy: invalid slippage");
 
         _pool(_token1, _token2, _amount1, _amount2, _slippage);

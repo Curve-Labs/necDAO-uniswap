@@ -111,7 +111,7 @@ contract('UniswapProxy', (accounts) => {
         it('it reverts', async () => {
           await expectRevert(
             setup.data.proxy.swap(setup.tokens.erc20s[0].address, setup.tokens.erc20s[0].address, helpers.values.swap.AMOUNT, helpers.values.swap.EXPECTED),
-            'UniswapProxy: invalid swap pair'
+            'UniswapProxy: invalid pair'
           );
         });
       });
@@ -125,7 +125,7 @@ contract('UniswapProxy', (accounts) => {
         it('it reverts', async () => {
           await expectRevert(
             setup.data.proxy.swap(setup.tokens.erc20s[0].address, setup.tokens.erc20s[1].address, 0, helpers.values.swap.EXPECTED),
-            'UniswapProxy: invalid swap amount'
+            'UniswapProxy: invalid amount'
           );
         });
       });
@@ -414,7 +414,7 @@ contract('UniswapProxy', (accounts) => {
               helpers.values.pool.AMOUNT,
               helpers.values.pool.SLIPPAGE
             ),
-            'UniswapProxy: invalid pool pair'
+            'UniswapProxy: invalid pair'
           );
         });
       });
@@ -428,7 +428,7 @@ contract('UniswapProxy', (accounts) => {
         it('it reverts', async () => {
           await expectRevert(
             setup.data.proxy.pool(setup.tokens.erc20s[0].address, setup.tokens.erc20s[1].address, 0, 0, helpers.values.pool.SLIPPAGE),
-            'UniswapProxy: invalid pool amount'
+            'UniswapProxy: invalid amount'
           );
         });
       });

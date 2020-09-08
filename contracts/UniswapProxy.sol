@@ -24,17 +24,27 @@ contract UniswapProxy {
     Avatar             public   avatar;
     IUniswapV2Router02 public   router;
 
-    event Swap (address from, address to, uint256 amount, uint256 expected, uint256 returned);
-    event Pool (address token1, address token2, uint256 amount1, uint256 amount2, uint256 min1, uint256 min2, uint256 pooled1, uint256 pooled2, uint256 liquidity);
+    event Swap (address indexed from, address indexed to, uint256 amount, uint256 expected, uint256 returned);
+    event Pool (
+        address indexed token1,
+        address indexed token2,
+        uint256 amount1,
+        uint256 amount2,
+        uint256 min1,
+        uint256 min2,
+        uint256 pooled1,
+        uint256 pooled2,
+        uint256 returned
+    );
 
     modifier initializer() {
-        require(!initialized, "UniswapProxy: proxy already initialized");
+        require(!initialized, "UniswapProxy: already initialized");
         initialized = true;
         _;
     }
 
     modifier protected () {
-        require(initialized,                   "UniswapProxy: proxy not initialized");
+        require(initialized,                   "UniswapProxy: not initialized");
         require(msg.sender == address(avatar), "UniswapProxy: protected operation");
         _;
     }
@@ -68,13 +78,19 @@ contract UniswapProxy {
 
     /**
       * @dev             Pool tokens.
-      * @param _token1   The address of the pair's first token to pool [address(0) for ETH].
-      * @param _token2   The address of the pair's second token to pool [address(0) for ETH].
+      * @param _token1   The address of the pair's first token [address(0) for ETH].
+      * @param _token2   The address of the pair's second token [address(0) for ETH].
       * @param _amount1  The amount of `_token1` to pool.
       * @param _amount2  The amount of `_token2` to pool.
       * @param _slippage The allowed price slippage [reverts otherwise].
       */
-    function pool(address _token1, address _token2, uint256 _amount1, uint256 _amount2, uint256 _slippage) external protected {
+    function pool(
+        address _token1,
+        address _token2,
+        uint256 _amount1,
+        uint256 _amount2,
+        uint256 _slippage
+    ) external protected {
         require(_token1 != _token2,            ERROR_PAIR);
         require(_amount1 > 0 && _amount2 > 0,  ERROR_AMOUNT);
         require(_slippage <= PPM,              "UniswapProxy: invalid slippage");
@@ -93,13 +109,7 @@ contract UniswapProxy {
         if (_from != address(0) && _to != address(0)) {
             path[0] = _from;
             path[1] = _to;
-            (success, returned) = controller.genericCall(
-                _from,
-                abi.encodeWithSelector(IERC20(_from).approve.selector, address(router), _amount),
-                avatar,
-                0
-            );
-            require(success, ERROR_APPROVAL);
+            _approve(_from, _amount);
             (success, returned) = controller.genericCall(
                 address(router),
                 abi.encodeWithSelector(
@@ -127,13 +137,7 @@ contract UniswapProxy {
         } else if (_to == address(0)) {
             path[0] = _from;
             path[1] = router.WETH();
-            (success, returned) = controller.genericCall(
-                _from,
-                abi.encodeWithSelector(IERC20(_from).approve.selector, address(router), _amount),
-                avatar,
-                0
-            );
-            require(success, ERROR_APPROVAL);
+            _approve(_from, _amount);
             (success, returned) = controller.genericCall(
                 address(router),
                 abi.encodeWithSelector(
@@ -159,23 +163,11 @@ contract UniswapProxy {
         bool             success;
 
         uint256 min1 = _amount1.sub(_amount1.mul(_slippage).div(PPM));
-        uint256 min2 = _amount1.sub(_amount2.mul(_slippage).div(PPM));
+        uint256 min2 = _amount2.sub(_amount2.mul(_slippage).div(PPM));
 
         if (_token1 != address(0) && _token2 != address(0)) {
-            (success, returned) = controller.genericCall(
-                _token1,
-                abi.encodeWithSelector(IERC20(_token1).approve.selector, address(router), _amount1),
-                avatar,
-                0
-            );
-            require(success, ERROR_APPROVAL);
-            (success, returned) = controller.genericCall(
-                _token2,
-                abi.encodeWithSelector(IERC20(_token2).approve.selector, address(router), _amount2),
-                avatar,
-                0
-            );
-            require(success, ERROR_APPROVAL);
+            _approve(_token1, _amount1);
+            _approve(_token2, _amount2);
             (success, returned) = controller.genericCall(
                 address(router),
                 abi.encodeWithSelector(
@@ -194,41 +186,57 @@ contract UniswapProxy {
             );
             require(success, ERROR_POOL);
         } else {
-          address token  = _token1 == address(0) ? _token2 : _token1;
-          uint256 amount = _token1 == address(0) ? _amount2 : _amount1;
-          uint256 value  = _token1 == address(0) ? _amount1 : _amount2;
-
-          (success, returned) = controller.genericCall(
-              token,
-              abi.encodeWithSelector(IERC20(token).approve.selector, address(router), amount),
-              avatar,
-              0
-          );
-          require(success, ERROR_APPROVAL);
-          (success, returned) = controller.genericCall(
-              address(router),
-              abi.encodeWithSelector(
-                  router.addLiquidityETH.selector,
-                  token,
-                  _token2,
-                  _amount1,
-                  _amount2,
-                  min1,
-                  min2,
-                  avatar,
-                  block.timestamp
-              ),
-              avatar,
-              value
-          );
-          require(success, ERROR_POOL);
+            address token    = _token1 == address(0) ? _token2 : _token1;
+            uint256 amount   = _token1 == address(0) ? _amount2 : _amount1;
+            uint256 value    = _token1 == address(0) ? _amount1 : _amount2;
+            uint256 minToken = _token1 == address(0) ? min2 : min1;
+            uint256 minETH   = _token1 == address(0) ? min1 : min2;
+            _approve(token, amount);
+            (success, returned) = controller.genericCall(
+                address(router),
+                abi.encodeWithSelector(
+                    router.addLiquidityETH.selector,
+                    token,
+                    amount,
+                    minToken,
+                    minETH,
+                    avatar,
+                    block.timestamp
+                ),
+                avatar,
+                value
+            );
+            require(success, ERROR_POOL);
         }
-
-        (uint256 pooled1, uint256 pooled2, uint256 liquidity) = _parsePoolReturn(returned);
-        emit Pool(_token1, _token2, _amount1, _amount2, min1, min2, pooled1, pooled2, liquidity);
+        
+        (uint256 pooled1, uint256 pooled2, uint256 _returned) = _parsePoolReturn(_token1, returned);
+        emit Pool(_token1, _token2, _amount1, _amount2, min1, min2, pooled1, pooled2, _returned);
     }
 
-    /* internal helpers */
+    /* internal helpers functions */
+
+    function _approve(address _token, uint256 _amount) internal {
+        Controller       controller = Controller(avatar.owner());
+        bool             success;
+
+        if (IERC20(_token).allowance(address(avatar), address(router)) > 0) {
+            // reset allowance to make sure final approval does not revert
+            (success,) = controller.genericCall(
+                _token,
+                abi.encodeWithSelector(IERC20(_token).approve.selector, address(router), 0),
+                avatar,
+                0
+            );
+            require(success, ERROR_APPROVAL);
+        }
+        (success,) = controller.genericCall(
+            _token,
+            abi.encodeWithSelector(IERC20(_token).approve.selector, address(router), _amount),
+            avatar,
+            0
+        );
+        require(success, ERROR_APPROVAL);
+    }
 
     function _parseSwapReturn(bytes memory data) internal pure returns (uint256 amount) {
         assembly {
@@ -236,11 +244,22 @@ contract UniswapProxy {
         }
     }
 
-    function _parsePoolReturn(bytes memory data) internal pure returns (uint256 amount1, uint256 amount2, uint256 liquidity) {
-        assembly {
-            amount1 := mload(add(data, 32))
-            amount2 := mload(add(data, 64))
-            liquidity := mload(add(data, 96))
+    function _parsePoolReturn(
+        address _token1,
+        bytes memory data
+    ) internal pure returns (uint256 pooled1, uint256 pooled2, uint256 returned) {
+        if (_token1 == address(0)) {
+            assembly {
+                pooled2 := mload(add(data, 32))
+                pooled1 := mload(add(data, 64))
+                returned := mload(add(data, 96))
+            }
+        } else {
+            assembly {
+                pooled1 := mload(add(data, 32))
+                pooled2 := mload(add(data, 64))
+                returned := mload(add(data, 96))
+            }            
         }
     }
 }

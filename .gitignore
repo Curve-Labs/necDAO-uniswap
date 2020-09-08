@@ -7,6 +7,7 @@ package-lock.json
 # buidler
 artifacts
 cache
+deployments/localhost_31337
 deployments/private_1337
 
 # coverage

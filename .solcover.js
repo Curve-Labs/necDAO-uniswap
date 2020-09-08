@@ -15,7 +15,7 @@ async function copyABIs() {
 }
 
 module.exports = {
-  skipFiles: ['test/Import.sol', 'test/ERC20Mock', 'uniswap/IUniswapV2Router02.sol'],
+  skipFiles: ['test/Import.sol', 'test/ERC20Mock', 'interfaces/IUniswapV2Router02.sol'],
   providerOptions: {
     gasLimit: 0x1fffffffffffff,
     allowUnlimitedContractSize: true,

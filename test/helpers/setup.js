@@ -80,22 +80,24 @@ const uniswap = async (setup) => {
     setup.root,
     timestamp + 10000000
   );
-  await setup.tokens.weth.approve(router.address, INITIAL_CASH_BALANCE);
+  // await setup.tokens.weth.approve(router.address, INITIAL_CASH_BALANCE);
   await setup.tokens.erc20s[0].approve(router.address, INITIAL_CASH_BALANCE);
-  await router.addLiquidity(
-    setup.tokens.weth.address,
+  await router.addLiquidityETH(
     setup.tokens.erc20s[0].address,
     INITIAL_CASH_BALANCE,
     INITIAL_CASH_BALANCE,
     INITIAL_CASH_BALANCE,
-    INITIAL_CASH_BALANCE,
     setup.root,
-    timestamp + 10000000
+    timestamp + 10000000,
+    {
+      value: INITIAL_CASH_BALANCE,
+    }
   );
 
   const liquidityTokenERC20s = await ERC20.at(await factory.getPair(setup.tokens.erc20s[0].address, setup.tokens.erc20s[1].address));
+  const liquidityTokenERC20ETH = await ERC20.at(await factory.getPair(setup.tokens.erc20s[0].address, setup.tokens.weth.address));
 
-  return { factory, router, liquidityTokenERC20s };
+  return { factory, router, liquidityTokenERC20s, liquidityTokenERC20ETH };
 };
 
 const DAOStack = async () => {

@@ -17,6 +17,7 @@
     "test:gas": "REPORT_GAS=TRUE npx buidler test",
     "deploy:proxy:rinkeby": "npx buidler deploy --tags proxy --network rinkeby",
     "deploy:tokens:rinkeby": "npx buidler deploy --tags tokens --network rinkeby",
+    "deploy:pool:rinkeby": "npx buidler deploy --tags pool --network rinkeby",
     "deploy:dao:rinkeby": "npx buidler run scripts/migrate.js --network rinkeby"
   },
   "dependencies": {

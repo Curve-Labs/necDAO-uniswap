@@ -4,6 +4,7 @@ import "@daostack/arc/contracts/controller/Avatar.sol";
 import "@daostack/arc/contracts/controller/Controller.sol";
 import "openzeppelin-solidity/contracts/math/SafeMath.sol";
 import "openzeppelin-solidity/contracts/token/ERC20/IERC20.sol";
+import './interfaces/IUniswapV2Factory.sol';
 import './interfaces/IUniswapV2Router02.sol';
 
 /**
@@ -19,6 +20,7 @@ contract UniswapProxy {
     string  constant ERROR_APPROVAL = "UniswapProxy: ERC20 approval failed";
     string  constant ERROR_SWAP     = "UniswapProxy: swap failed";
     string  constant ERROR_POOL     = "UniswapProxy: pool failed";
+    string  constant ERROR_UNPOOL   = "UniswapProxy: unpool failed";
 
     bool               public   initialized;
     Avatar             public   avatar;
@@ -35,6 +37,15 @@ contract UniswapProxy {
         uint256 pooled1,
         uint256 pooled2,
         uint256 returned
+    );
+    event Unpool (
+        address indexed token1,
+        address indexed token2,
+        uint256 amount,
+        uint256 expected1,
+        uint256 expected2,
+        uint256 returned1,
+        uint256 returned2
     );
 
     modifier initializer() {
@@ -96,6 +107,27 @@ contract UniswapProxy {
         require(_slippage <= PPM,              "UniswapProxy: invalid slippage");
 
         _pool(_token1, _token2, _amount1, _amount2, _slippage);
+    }
+
+    /**
+      * @dev              Unpool tokens.
+      * @param _token1    The address of the pair's first token [address(0) for ETH].
+      * @param _token2    The address of the pair's second token [address(0) for ETH].
+      * @param _amount    The amount of liquidity tokens to unpool.
+      * @param _expected1 The minimum amount of `_token1` to expect in return for this transaction [reverts otherwise].
+      * @param _expected2 The minimum amount of `_token2` to expect in return for this transaction [reverts otherwise].
+      */
+    function unpool(
+        address _token1,
+        address _token2,
+        uint256 _amount,
+        uint256 _expected1,
+        uint256 _expected2
+    ) external protected {
+        require(_token1 != _token2, ERROR_PAIR);
+        require(_amount > 0,        ERROR_AMOUNT);
+
+        _unpool(_token1, _token2, _amount, _expected1, _expected2);
     }
 
     /* internal state-modifying functions */
@@ -213,6 +245,38 @@ contract UniswapProxy {
         emit Pool(_token1, _token2, _amount1, _amount2, min1, min2, pooled1, pooled2, _returned);
     }
 
+    function _unpool(address _token1, address _token2, uint256 _amount, uint256 _expected1, uint256 _expected2) internal {
+        address          pair       = _pair(_token1, _token2);
+        Controller       controller = Controller(avatar.owner());
+        bytes     memory returned;
+        bool             success;
+
+        if (_token1 != address(0) && _token2 != address(0)) {
+            _approve(pair, _amount);
+
+            (success, returned) = controller.genericCall(
+                address(router),
+                abi.encodeWithSelector(
+                    router.removeLiquidity.selector,
+                    _token1,
+                    _token2,
+                    _amount,
+                    _expected1,
+                    _expected2,
+                    avatar,
+                    block.timestamp
+                ),
+                avatar,
+                0
+            );
+            require(success, ERROR_UNPOOL);
+        } else {
+        }
+        
+        (uint256 returned1, uint256 returned2) = _parseUnpoolReturn(returned);
+        emit Unpool(_token1, _token2, _amount, _expected1, _expected2, returned1, returned2);
+    }
+
     /* internal helpers functions */
 
     function _approve(address _token, uint256 _amount) internal {
@@ -238,6 +302,14 @@ contract UniswapProxy {
         require(success, ERROR_APPROVAL);
     }
 
+    function _pair(address _token1, address _token2) internal view returns (address) {
+        IUniswapV2Factory factory = IUniswapV2Factory(router.factory());
+        address           pair    = factory.getPair(_token1, _token2);
+        require(pair != address(0), ERROR_PAIR);
+        return pair;
+    }
+
+
     function _parseSwapReturn(bytes memory data) internal pure returns (uint256 amount) {
         assembly {
             amount := mload(add(data, 128))
@@ -260,6 +332,15 @@ contract UniswapProxy {
                 pooled2 := mload(add(data, 64))
                 returned := mload(add(data, 96))
             }            
+        }
+    }
+
+    function _parseUnpoolReturn(
+        bytes memory data
+    ) internal pure returns (uint256 returned1, uint256 returned2) {
+        assembly {
+            returned1 := mload(add(data, 32))
+            returned2 := mload(add(data, 64))
         }
     }
 }

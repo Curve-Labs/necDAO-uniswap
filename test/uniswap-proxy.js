@@ -522,7 +522,7 @@ contract('UniswapProxy', (accounts) => {
       });
 
       context('» pool fails [slippage exceeds allowed slippage]', () => {
-        before('!! execute swap', async () => {
+        before('!! execute pool', async () => {
           // store balances
           setup.data.balances[0] = await setup.tokens.erc20s[0].balanceOf(setup.organization.avatar.address);
           setup.data.balances[1] = await setup.tokens.erc20s[1].balanceOf(setup.organization.avatar.address);
@@ -764,6 +764,239 @@ contract('UniswapProxy', (accounts) => {
           expect(await setup.tokens.erc20s[0].balanceOf(setup.organization.avatar.address)).to.be.bignumber.equal(setup.data.balances[0]);
           expect(await balance.current(setup.organization.avatar.address)).to.be.bignumber.equal(setup.data.balances[1]);
           expect(await setup.uniswap.liquidityTokenERC20ETH.balanceOf(setup.organization.avatar.address)).to.be.bignumber.equal(setup.data.balances[2]);
+        });
+      });
+    });
+  });
+
+  context.only('# unpool', () => {
+    context('» generics', () => {
+      before('!! deploy setup', async () => {
+        setup = await deploy(accounts);
+      });
+
+      context('» proxy is not initialized', () => {
+        before('!! deploy proxy', async () => {
+          setup.data.proxy = await UniswapProxy.new();
+        });
+
+        it('it reverts', async () => {
+          await expectRevert(
+            setup.data.proxy.unpool(
+              setup.tokens.erc20s[0].address,
+              setup.tokens.erc20s[1].address,
+              helpers.values.unpool.AMOUNT,
+              helpers.values.unpool.EXPECTED1,
+              helpers.values.unpool.EXPECTED2
+            ),
+            'UniswapProxy: not initialized'
+          );
+        });
+      });
+
+      context('» unpool is not triggered by avatar', () => {
+        before('!! deploy and initialize proxy', async () => {
+          setup.data.proxy = await UniswapProxy.new();
+          await setup.data.proxy.initialize(setup.organization.avatar.address, setup.uniswap.router.address);
+        });
+
+        it('it reverts', async () => {
+          await expectRevert(
+            setup.data.proxy.unpool(
+              setup.tokens.erc20s[0].address,
+              setup.tokens.erc20s[1].address,
+              helpers.values.unpool.AMOUNT,
+              helpers.values.unpool.EXPECTED1,
+              helpers.values.unpool.EXPECTED2
+            ),
+            'UniswapProxy: protected operation'
+          );
+        });
+      });
+
+      context('» token pair is invalid', () => {
+        before('!! deploy and initialize proxy', async () => {
+          setup.data.proxy = await UniswapProxy.new();
+          await setup.data.proxy.initialize(accounts[0], setup.uniswap.router.address);
+        });
+
+        it('it reverts', async () => {
+          await expectRevert(
+            setup.data.proxy.unpool(
+              setup.tokens.erc20s[0].address,
+              setup.tokens.erc20s[0].address,
+              helpers.values.unpool.AMOUNT,
+              helpers.values.unpool.EXPECTED1,
+              helpers.values.unpool.EXPECTED2
+            ),
+            'UniswapProxy: invalid pair'
+          );
+        });
+      });
+
+      context('» unpool amount is invalid', () => {
+        before('!! deploy and initialize proxy', async () => {
+          setup.data.proxy = await UniswapProxy.new();
+          await setup.data.proxy.initialize(accounts[0], setup.uniswap.router.address);
+        });
+
+        it('it reverts', async () => {
+          await expectRevert(
+            setup.data.proxy.unpool(
+              setup.tokens.erc20s[0].address,
+              setup.tokens.erc20s[1].address,
+              0,
+              helpers.values.unpool.EXPECTED1,
+              helpers.values.unpool.EXPECTED2
+            ),
+            'UniswapProxy: invalid amount'
+          );
+        });
+      });
+    });
+
+    context('» ERC20 and ERC20', () => {
+      context('» unpool succeeds', () => {
+        before('!! deploy setup', async () => {
+          setup = await deploy(accounts);
+        });
+
+        before('!! execute swap [unbalance pool]', async () => {
+          const calldata = helpers.encodeSwap(
+            setup.tokens.erc20s[0].address,
+            setup.tokens.erc20s[1].address,
+            helpers.values.swap.AMOUNT,
+            helpers.values.swap.EXPECTED
+          );
+          const _tx = await setup.scheme.proposeCall(calldata, 0, constants.ZERO_BYTES32);
+          const proposalId = helpers.getNewProposalId(_tx);
+          await setup.scheme.voting.absoluteVote.vote(proposalId, 1, 0, constants.ZERO_ADDRESS);
+        });
+
+        before('!! execute pool', async () => {
+          const calldata = helpers.encodePool(
+            setup.tokens.erc20s[0].address,
+            setup.tokens.erc20s[1].address,
+            helpers.values.pool.AMOUNT,
+            helpers.values.pool.AMOUNT,
+            helpers.values.pool.SLIPPAGE
+          );
+          const _tx = await setup.scheme.proposeCall(calldata, 0, constants.ZERO_BYTES32);
+          const proposalId = helpers.getNewProposalId(_tx);
+          await setup.scheme.voting.absoluteVote.vote(proposalId, 1, 0, constants.ZERO_ADDRESS);
+        });
+
+        before('!! execute unpool', async () => {
+          // store balances
+          setup.data.balances[0] = await setup.tokens.erc20s[0].balanceOf(setup.organization.avatar.address);
+          setup.data.balances[1] = await setup.tokens.erc20s[1].balanceOf(setup.organization.avatar.address);
+          setup.data.balances[2] = await setup.uniswap.liquidityTokenERC20s.balanceOf(setup.organization.avatar.address);
+          // execute unpool
+          const calldata = helpers.encodeUnpool(
+            setup.tokens.erc20s[0].address,
+            setup.tokens.erc20s[1].address,
+            helpers.values.unpool.AMOUNT,
+            helpers.values.unpool.EXPECTED1,
+            helpers.values.unpool.EXPECTED2
+          );
+          const _tx = await setup.scheme.proposeCall(calldata, 0, constants.ZERO_BYTES32);
+          const proposalId = helpers.getNewProposalId(_tx);
+          const tx = await setup.scheme.voting.absoluteVote.vote(proposalId, 1, 0, constants.ZERO_ADDRESS);
+          const proposal = await setup.scheme.organizationProposals(proposalId);
+          // store data
+          setup.data.tx = tx;
+          setup.data.proposal = proposal;
+        });
+
+        it('it emits a Unpool event', async () => {
+          await expectEvent.inTransaction(setup.data.tx.tx, setup.proxy, 'Unpool', {
+            token1: setup.tokens.erc20s[0].address,
+            token2: setup.tokens.erc20s[1].address,
+            amount: helpers.values.unpool.AMOUNT,
+            expected1: helpers.values.unpool.EXPECTED1,
+            expected2: helpers.values.unpool.EXPECTED2,
+            returned1: helpers.values.unpool.RETURNED1,
+            returned2: helpers.values.unpool.RETURNED2,
+          });
+        });
+
+        it('it unpool tokens', async () => {
+          expect(await setup.tokens.erc20s[0].balanceOf(setup.organization.avatar.address)).to.be.bignumber.equal(
+            setup.data.balances[0].add(helpers.values.unpool.RETURNED1)
+          );
+          expect(await setup.tokens.erc20s[1].balanceOf(setup.organization.avatar.address)).to.be.bignumber.equal(
+            setup.data.balances[1].add(helpers.values.unpool.RETURNED2)
+          );
+          expect(await setup.uniswap.liquidityTokenERC20s.balanceOf(setup.organization.avatar.address)).to.be.bignumber.equal(
+            setup.data.balances[2].sub(helpers.values.unpool.AMOUNT)
+          );
+        });
+      });
+
+      context('» unpool fails [return is less than expected]', () => {
+        before('!! deploy setup', async () => {
+          setup = await deploy(accounts);
+        });
+
+        before('!! execute swap [unbalance pool]', async () => {
+          const calldata = helpers.encodeSwap(
+            setup.tokens.erc20s[0].address,
+            setup.tokens.erc20s[1].address,
+            helpers.values.swap.AMOUNT,
+            helpers.values.swap.EXPECTED
+          );
+          const _tx = await setup.scheme.proposeCall(calldata, 0, constants.ZERO_BYTES32);
+          const proposalId = helpers.getNewProposalId(_tx);
+          await setup.scheme.voting.absoluteVote.vote(proposalId, 1, 0, constants.ZERO_ADDRESS);
+        });
+
+        before('!! execute pool', async () => {
+          const calldata = helpers.encodePool(
+            setup.tokens.erc20s[0].address,
+            setup.tokens.erc20s[1].address,
+            helpers.values.pool.AMOUNT,
+            helpers.values.pool.AMOUNT,
+            helpers.values.pool.SLIPPAGE
+          );
+          const _tx = await setup.scheme.proposeCall(calldata, 0, constants.ZERO_BYTES32);
+          const proposalId = helpers.getNewProposalId(_tx);
+          await setup.scheme.voting.absoluteVote.vote(proposalId, 1, 0, constants.ZERO_ADDRESS);
+        });
+
+        before('!! execute unpool', async () => {
+          // store balances
+          setup.data.balances[0] = await setup.tokens.erc20s[0].balanceOf(setup.organization.avatar.address);
+          setup.data.balances[1] = await setup.tokens.erc20s[1].balanceOf(setup.organization.avatar.address);
+          setup.data.balances[2] = await setup.uniswap.liquidityTokenERC20s.balanceOf(setup.organization.avatar.address);
+          // execute failing unpool
+          const calldata = helpers.encodeUnpool(
+            setup.tokens.erc20s[0].address,
+            setup.tokens.erc20s[1].address,
+            helpers.values.unpool.AMOUNT,
+            helpers.values.unpool.EXPECTED1.add(new BN('1')),
+            helpers.values.unpool.EXPECTED2
+          );
+          const _tx = await setup.scheme.proposeCall(calldata, 0, constants.ZERO_BYTES32);
+          const proposalId = helpers.getNewProposalId(_tx);
+          const tx = await setup.scheme.voting.absoluteVote.vote(proposalId, 1, 0, constants.ZERO_ADDRESS);
+          const proposal = await setup.scheme.organizationProposals(proposalId);
+          // store data
+          setup.data.tx = tx;
+          setup.data.proposal = proposal;
+        });
+
+        it('it keeps proposal live', async () => {
+          expect(setup.data.proposal.exist).to.equal(true);
+        });
+
+        it('it emits no Unpool event', async () => {
+          await expectEvent.notEmitted.inTransaction(setup.data.tx.tx, setup.proxy, 'Unpool');
+        });
+
+        it('it maintains balances', async () => {
+          expect(await setup.tokens.erc20s[0].balanceOf(setup.organization.avatar.address)).to.be.bignumber.equal(setup.data.balances[0]);
+          expect(await setup.tokens.erc20s[1].balanceOf(setup.organization.avatar.address)).to.be.bignumber.equal(setup.data.balances[1]);
+          expect(await setup.uniswap.liquidityTokenERC20s.balanceOf(setup.organization.avatar.address)).to.be.bignumber.equal(setup.data.balances[2]);
         });
       });
     });

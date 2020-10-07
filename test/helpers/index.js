@@ -10,6 +10,10 @@ const encodePool = (token1, token2, amount1, amount2, slippage) => {
   return new web3.eth.Contract(UniswapProxy.abi).methods.pool(token1, token2, amount1, amount2, slippage).encodeABI();
 };
 
+const encodeUnpool = (token1, token2, amount, expected1, expected2) => {
+  return new web3.eth.Contract(UniswapProxy.abi).methods.unpool(token1, token2, amount, expected1, expected2).encodeABI();
+};
+
 const getValueFromLogs = (tx, arg, eventName, index = 0) => {
   /**
    *
@@ -61,6 +65,7 @@ module.exports = {
   setup,
   encodeSwap,
   encodePool,
+  encodeUnpool,
   getNewProposalId,
   values: {
     PPM: new BN('1000000'),
@@ -79,6 +84,15 @@ module.exports = {
       RETURNED: new BN('999'),
       RETURNED_ETH: new BN('989'),
       SLIPPAGE: new BN('50000'),
+    },
+    unpool: {
+      AMOUNT: new BN('900'),
+      EXPECTED1: new BN('900'),
+      EXPECTED2: new BN('850'),
+      EXPECTED_WITH_ETH: new BN('980'),
+      RETURNED1: new BN('900'),
+      RETURNED2: new BN('899'),
+      RETURNED_ETH: new BN('989'),
     },
   },
 };

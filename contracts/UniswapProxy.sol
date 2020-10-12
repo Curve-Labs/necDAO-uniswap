@@ -113,7 +113,7 @@ contract UniswapProxy {
       * @dev              Unpool tokens.
       * @param _token1    The address of the pair's first token [address(0) for ETH].
       * @param _token2    The address of the pair's second token [address(0) for ETH].
-      * @param _amount    The amount of liquidity tokens to unpool.
+      * @param _amount    The amount of liquidity token to unpool.
       * @param _expected1 The minimum amount of `_token1` to expect in return for this transaction [reverts otherwise].
       * @param _expected2 The minimum amount of `_token2` to expect in return for this transaction [reverts otherwise].
       */
@@ -251,9 +251,9 @@ contract UniswapProxy {
         bytes     memory returned;
         bool             success;
 
-        if (_token1 != address(0) && _token2 != address(0)) {
-            _approve(pair, _amount);
+        _approve(pair, _amount);
 
+        if (_token1 != address(0) && _token2 != address(0)) {
             (success, returned) = controller.genericCall(
                 address(router),
                 abi.encodeWithSelector(
@@ -271,9 +271,27 @@ contract UniswapProxy {
             );
             require(success, ERROR_UNPOOL);
         } else {
+            address token         = _token1 == address(0) ? _token2 : _token1;
+            uint256 expectedToken = _token1 == address(0) ? _expected2 : _expected1;
+            uint256 expectedETH   = _token1 == address(0) ? _expected1 : _expected2;
+            (success, returned) = controller.genericCall(
+                address(router),
+                abi.encodeWithSelector(
+                    router.removeLiquidityETH.selector,
+                    token,
+                    _amount,
+                    expectedToken,
+                    expectedETH,
+                    avatar,
+                    block.timestamp
+                ),
+                avatar,
+                0
+            );
+            require(success, ERROR_UNPOOL);
         }
         
-        (uint256 returned1, uint256 returned2) = _parseUnpoolReturn(returned);
+        (uint256 returned1, uint256 returned2) = _parseUnpoolReturn(_token1, returned);
         emit Unpool(_token1, _token2, _amount, _expected1, _expected2, returned1, returned2);
     }
 
@@ -303,12 +321,15 @@ contract UniswapProxy {
     }
 
     function _pair(address _token1, address _token2) internal view returns (address) {
+        address token1 = _token1 == address(0) ? router.WETH() : _token1;
+        address token2 = _token2 == address(0) ? router.WETH() : _token2;
+
         IUniswapV2Factory factory = IUniswapV2Factory(router.factory());
-        address           pair    = factory.getPair(_token1, _token2);
+        address           pair    = factory.getPair(token1, token2);
+
         require(pair != address(0), ERROR_PAIR);
         return pair;
     }
-
 
     function _parseSwapReturn(bytes memory data) internal pure returns (uint256 amount) {
         assembly {
@@ -336,11 +357,19 @@ contract UniswapProxy {
     }
 
     function _parseUnpoolReturn(
+        address _token1,
         bytes memory data
     ) internal pure returns (uint256 returned1, uint256 returned2) {
-        assembly {
-            returned1 := mload(add(data, 32))
-            returned2 := mload(add(data, 64))
+        if (_token1 == address(0)) {
+            assembly {
+                returned1 := mload(add(data, 64))
+                returned2 := mload(add(data, 32))
+            }
+        } else {
+            assembly {
+                returned1 := mload(add(data, 32))
+                returned2 := mload(add(data, 64))
+            }
         }
     }
 }

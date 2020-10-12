@@ -12,11 +12,9 @@ const DAOToken = artifacts.require('./DAOToken.sol');
 const Reputation = artifacts.require('./Reputation.sol');
 const AbsoluteVote = artifacts.require('./AbsoluteVote.sol');
 
-const { constants } = require('@openzeppelin/test-helpers');
+const { constants, ether } = require('@openzeppelin/test-helpers');
 
-const ARC_GAS_LIMIT = 6200000;
-const INITIAL_CASH_SUPPLY = '2000000000000000000000';
-const INITIAL_CASH_BALANCE = '100000000000000';
+const INITIAL_CASH_BALANCE = ether('50');
 const DAO_TOKENS = '100';
 const REPUTATION = '1000';
 

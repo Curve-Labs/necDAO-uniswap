@@ -1,4 +1,4 @@
-const { BN } = require('@openzeppelin/test-helpers');
+const { BN, constants, ether } = require('@openzeppelin/test-helpers');
 const setup = require('./setup');
 const UniswapProxy = artifacts.require('UniswapProxy');
 
@@ -61,38 +61,67 @@ const getNewProposalId = (tx) => {
   return getValueFromLogs(tx, '_proposalId', 'NewProposal');
 };
 
+const swap = async (setup, token1, token2) => {
+  const calldata = encodeSwap(token1, token2, values.swap.AMOUNT, values.swap.EXPECTED);
+  const _tx = await setup.scheme.proposeCall(calldata, 0, constants.ZERO_BYTES32);
+  const proposalId = getNewProposalId(_tx);
+  const tx = await setup.scheme.voting.absoluteVote.vote(proposalId, 1, 0, constants.ZERO_ADDRESS);
+  const proposal = await setup.scheme.organizationProposals(proposalId);
+
+  return { tx, proposal };
+};
+
+const pool = async (setup, token1, token2) => {
+  const calldata = encodePool(token1, token2, values.pool.AMOUNT, values.pool.AMOUNT, values.pool.SLIPPAGE);
+  const _tx = await setup.scheme.proposeCall(calldata, 0, constants.ZERO_BYTES32);
+  const proposalId = getNewProposalId(_tx);
+  const tx = await setup.scheme.voting.absoluteVote.vote(proposalId, 1, 0, constants.ZERO_ADDRESS);
+  const proposal = await setup.scheme.organizationProposals(proposalId);
+
+  return { tx, proposal };
+};
+
+const unpool = async (setup, token1, token2) => {
+  const calldata = encodeUnpool(token1, token2, values.unpool.AMOUNT, values.unpool.EXPECTED1, values.unpool.EXPECTED2);
+  const _tx = await setup.scheme.proposeCall(calldata, 0, constants.ZERO_BYTES32);
+  const proposalId = getNewProposalId(_tx);
+  const tx = await setup.scheme.voting.absoluteVote.vote(proposalId, 1, 0, constants.ZERO_ADDRESS);
+  const proposal = await setup.scheme.organizationProposals(proposalId);
+
+  return { tx, proposal };
+};
+const values = {
+  PPM: new BN('1000000'),
+  swap: {
+    AMOUNT: ether('1'),
+    EXPECTED: ether('0.9'),
+    RETURNED: ether('0.977508480891032805'),
+  },
+  pool: {
+    AMOUNT: ether('10'),
+    MIN: ether('9.50'),
+    POOLED1: ether('10'),
+    POOLED2: ether('9.612253239040973959'),
+    RETURNED: ether('9.803921568627450979'),
+    SLIPPAGE: new BN('50000'),
+  },
+  unpool: {
+    AMOUNT: ether('9.5'),
+    EXPECTED1: ether('9.5'),
+    EXPECTED2: ether('9.3'),
+    RETURNED1: ether('9.69'),
+    RETURNED2: ether('9.314273388630703767'),
+  },
+};
+
 module.exports = {
   setup,
   encodeSwap,
   encodePool,
   encodeUnpool,
   getNewProposalId,
-  values: {
-    PPM: new BN('1000000'),
-    swap: {
-      AMOUNT: new BN('1000'),
-      EXPECTED: new BN('500'),
-      RETURNED: new BN('996'),
-      UNBALANCE_ETH: new BN('1000000000000'),
-    },
-    pool: {
-      AMOUNT: new BN('1000'),
-      MIN: new BN('950'),
-      POOLED1: new BN('1000'),
-      POOLED2: new BN('999'),
-      POOLED_WITH_ETH: new BN('980'),
-      RETURNED: new BN('999'),
-      RETURNED_ETH: new BN('989'),
-      SLIPPAGE: new BN('50000'),
-    },
-    unpool: {
-      AMOUNT: new BN('900'),
-      EXPECTED1: new BN('900'),
-      EXPECTED2: new BN('850'),
-      EXPECTED_WITH_ETH: new BN('980'),
-      RETURNED1: new BN('900'),
-      RETURNED2: new BN('899'),
-      RETURNED_ETH: new BN('989'),
-    },
-  },
+  swap,
+  pool,
+  unpool,
+  values,
 };

@@ -54,7 +54,7 @@ contract UniswapProxy {
         _;
     }
 
-    modifier protected () {
+    modifier protected() {
         require(initialized,                   "UniswapProxy: not initialized");
         require(msg.sender == address(avatar), "UniswapProxy: protected operation");
         _;
@@ -62,7 +62,7 @@ contract UniswapProxy {
 
     /**
       * @dev           Initialize proxy.
-      * @param _avatar The address of the Avatar controlling this proxy.
+      * @param _avatar The address of the Avatar which will control this proxy.
       * @param _router The address of the UniswapV2 router through which this proxy will interact with UniswapV2.
       */
     function initialize(Avatar _avatar, IUniswapV2Router02 _router) external initializer {
@@ -245,7 +245,13 @@ contract UniswapProxy {
         emit Pool(_token1, _token2, _amount1, _amount2, min1, min2, pooled1, pooled2, _returned);
     }
 
-    function _unpool(address _token1, address _token2, uint256 _amount, uint256 _expected1, uint256 _expected2) internal {
+    function _unpool(
+        address _token1,
+        address _token2,
+        uint256 _amount,
+        uint256 _expected1,
+        uint256 _expected2
+    ) internal {
         address          pair       = _pair(_token1, _token2);
         Controller       controller = Controller(avatar.owner());
         bytes     memory returned;
@@ -362,8 +368,8 @@ contract UniswapProxy {
     ) internal pure returns (uint256 returned1, uint256 returned2) {
         if (_token1 == address(0)) {
             assembly {
-                returned1 := mload(add(data, 64))
                 returned2 := mload(add(data, 32))
+                returned1 := mload(add(data, 64))
             }
         } else {
             assembly {

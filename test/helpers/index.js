@@ -1,6 +1,6 @@
+const UniswapProxy = artifacts.require('UniswapProxy');
 const { BN, constants, ether } = require('@openzeppelin/test-helpers');
 const setup = require('./setup');
-const UniswapProxy = artifacts.require('UniswapProxy');
 
 const encodeSwap = (from, to, amount, expected) => {
   return new web3.eth.Contract(UniswapProxy.abi).methods.swap(from, to, amount, expected).encodeABI();
@@ -90,6 +90,7 @@ const unpool = async (setup, token1, token2) => {
 
   return { tx, proposal };
 };
+
 const values = {
   PPM: new BN('1000000'),
   swap: {

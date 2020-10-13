@@ -78,7 +78,7 @@ const uniswap = async (setup) => {
     setup.root,
     timestamp + 10000000
   );
-  // await setup.tokens.weth.approve(router.address, INITIAL_CASH_BALANCE);
+
   await setup.tokens.erc20s[0].approve(router.address, INITIAL_CASH_BALANCE);
   await router.addLiquidityETH(
     setup.tokens.erc20s[0].address,

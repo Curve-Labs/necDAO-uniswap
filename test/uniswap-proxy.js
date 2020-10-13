@@ -1,7 +1,7 @@
+const UniswapProxy = artifacts.require('UniswapProxy');
 const { expect } = require('chai');
 const { BN, balance, constants, expectEvent, expectRevert } = require('@openzeppelin/test-helpers');
 const helpers = require('./helpers');
-const UniswapProxy = artifacts.require('UniswapProxy');
 
 const deploy = async (accounts) => {
   // initialize test setup

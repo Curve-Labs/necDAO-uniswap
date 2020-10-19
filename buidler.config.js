@@ -8,7 +8,7 @@ usePlugin('solidity-coverage');
 module.exports = {
   solc: {
     version: '0.5.13',
-    optimizer: { enabled: true, runs: 1 },
+    optimizer: { enabled: true, runs: 200 },
   },
   etherscan: {
     // The url for the Etherscan API you want to use.

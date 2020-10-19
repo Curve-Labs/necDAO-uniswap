@@ -1127,4 +1127,60 @@ contract('UniswapProxy', (accounts) => {
       });
     });
   });
+
+  context('# upgradeRouter', () => {
+    context('» proxy is not initialized', () => {
+      before('!! deploy proxy', async () => {
+        setup.data.proxy = await UniswapProxy.new();
+      });
+
+      it('it reverts', async () => {
+        await expectRevert(setup.data.proxy.upgradeRouter(accounts[0]), 'UniswapProxy: not initialized');
+      });
+    });
+
+    context('» upgradeRouter is not triggered by avatar', () => {
+      before('!! deploy and initialize proxy', async () => {
+        setup.data.proxy = await UniswapProxy.new();
+        await setup.data.proxy.initialize(setup.organization.avatar.address, setup.uniswap.router.address);
+      });
+
+      it('it reverts', async () => {
+        await expectRevert(setup.data.proxy.upgradeRouter(accounts[0]), 'UniswapProxy: protected operation');
+      });
+    });
+
+    context('» parameters are invalid', () => {
+      before('!! deploy and initialize proxy', async () => {
+        setup.data.proxy = await UniswapProxy.new();
+        await setup.data.proxy.initialize(accounts[0], setup.uniswap.router.address);
+      });
+
+      it('it reverts', async () => {
+        await expectRevert(setup.data.proxy.upgradeRouter(constants.ZERO_ADDRESS), 'UniswapProxy: router cannot be null');
+      });
+    });
+
+    context('» upgrade succeeds', () => {
+      before('!! deploy setup', async () => {
+        setup = await deploy(accounts);
+      });
+
+      before('!! execute upgrade', async () => {
+        // execute upgrade
+        const { tx, proposal } = await helpers.upgradeRouter(setup, accounts[0]);
+        // store data
+        setup.data.tx = tx;
+        setup.data.proposal = proposal;
+        // store data
+        setup.data.tx = tx;
+        setup.data.proposal = proposal;
+      });
+
+
+      it('it upgrades router', async () => {
+        expect(await setup.proxy.router()).to.equal(accounts[0]);
+      });
+    });
+  });
 });

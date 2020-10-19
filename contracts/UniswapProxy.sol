@@ -15,6 +15,7 @@ contract UniswapProxy {
     using SafeMath for uint256;
 
     uint256 constant PPM            = 1000000; // 100% = 1000000 | 50% = 500000 | 0% = 0
+    string  constant ERROR_ROUTER   = "UniswapProxy: router cannot be null";
     string  constant ERROR_PAIR     = "UniswapProxy: invalid pair";
     string  constant ERROR_AMOUNT   = "UniswapProxy: invalid amount";
     string  constant ERROR_APPROVAL = "UniswapProxy: ERC20 approval failed";
@@ -67,7 +68,7 @@ contract UniswapProxy {
       */
     function initialize(Avatar _avatar, IUniswapV2Router02 _router) external initializer {
         require(_avatar != Avatar(0),             "UniswapProxy: avatar cannot be null");
-        require(_router != IUniswapV2Router02(0), "UniswapProxy: router cannot be null");
+        require(_router != IUniswapV2Router02(0), ERROR_ROUTER);
 
         avatar = _avatar;
         router = _router;
@@ -128,6 +129,16 @@ contract UniswapProxy {
         require(_amount > 0,        ERROR_AMOUNT);
 
         _unpool(_token1, _token2, _amount, _expected1, _expected2);
+    }
+
+    /**
+      * @dev           Upgrade UniswapV2 router address.
+      * @param _router The address of the new UniswapV2 router through which this proxy will interact with UniswapV2.
+      */
+    function upgradeRouter(IUniswapV2Router02 _router) external protected {
+        require(_router != IUniswapV2Router02(0), ERROR_ROUTER);
+
+        router = _router;
     }
 
     /* internal state-modifying functions */

@@ -14,6 +14,10 @@ const encodeUnpool = (token1, token2, amount, expected1, expected2) => {
   return new web3.eth.Contract(UniswapProxy.abi).methods.unpool(token1, token2, amount, expected1, expected2).encodeABI();
 };
 
+const encodeUpgradeRouter = (router) => {
+  return new web3.eth.Contract(UniswapProxy.abi).methods.upgradeRouter(router).encodeABI();
+};
+
 const getValueFromLogs = (tx, arg, eventName, index = 0) => {
   /**
    *
@@ -91,6 +95,16 @@ const unpool = async (setup, token1, token2) => {
   return { tx, proposal };
 };
 
+const upgradeRouter = async (setup, router) => {
+  const calldata = encodeUpgradeRouter(router);
+  const _tx = await setup.scheme.proposeCall(calldata, 0, constants.ZERO_BYTES32);
+  const proposalId = getNewProposalId(_tx);
+  const tx = await setup.scheme.voting.absoluteVote.vote(proposalId, 1, 0, constants.ZERO_ADDRESS);
+  const proposal = await setup.scheme.organizationProposals(proposalId);
+
+  return { tx, proposal };
+};
+
 const values = {
   PPM: new BN('1000000'),
   swap: {
@@ -124,5 +138,6 @@ module.exports = {
   swap,
   pool,
   unpool,
+  upgradeRouter,
   values,
 };

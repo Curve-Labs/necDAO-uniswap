@@ -24,6 +24,7 @@ module.exports = {
   namedAccounts: {
     deployer: {
       default: 0,
+      1: '0xb71d2d88030a00830c3d45f84c12cc8aaf6857a5',
       4: '0xb71d2d88030a00830c3d45f84c12cc8aaf6857a5',
     },
   },
@@ -32,6 +33,10 @@ module.exports = {
       url: 'http://127.0.0.1:8545',
     },
     rinkeby: {
+      url: 'http://127.0.0.1:1248',
+    },
+    mainnet: {
+      gasPrice: 81e9,
       url: 'http://127.0.0.1:1248',
     },
     coverage: {

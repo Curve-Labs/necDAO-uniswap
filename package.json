@@ -15,6 +15,7 @@
     "test": "npx buidler test",
     "test:coverage": "npx buidler coverage --network coverage",
     "test:gas": "REPORT_GAS=TRUE npx buidler test",
+    "deploy:proxy:mainnet": "npx buidler deploy --tags proxy --network mainnet",
     "deploy:proxy:rinkeby": "npx buidler deploy --tags proxy --network rinkeby",
     "deploy:tokens:rinkeby": "npx buidler deploy --tags tokens --network rinkeby",
     "deploy:pool:rinkeby": "npx buidler deploy --tags pool --network rinkeby",
